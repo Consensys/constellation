@@ -47,7 +47,7 @@ defaultMain = do
 
 run :: Config -> IO ()
 run Config{..} = do
-    let logLevel = LevelDebug
+    let logLevel = LevelWarn
     logf' "Log level is {}" [show logLevel]
     setLogLevel logLevel
     ncpus <- getNumProcessors
