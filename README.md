@@ -28,6 +28,17 @@ Constellation binaries for most major platforms can be downloaded [here]().
   1. First time only: run `stack setup` to install the Haskell compiler
   2. Run `stack install`
 
+## Generating keys
+
+  1. To generate two key pairs, one for the node and one for archival, run
+     `constellation-enclave-keygen node archival`
+
+  If you choose to lock the keys with a password, they will be encrypted using
+  a master key derived from the password using Argon2i. This is designed to be
+  a very expensive operation to deter password cracking efforts. When
+  constellation encounters a locked key, it will prompt for a password after
+  which the decrypted key will live in memory until the process ends.
+
 ## Running
 
   1. Run `constellation-node <path to config file>`
