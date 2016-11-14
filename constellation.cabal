@@ -1,0 +1,185 @@
+name:                constellation
+version:             0.1.0.0
+synopsis:            Constellation
+description:         Constellation
+homepage:            https://github.com/noirqs/constellation
+license:             Apache-2.0
+license-file:        LICENSE
+author:              Patrick Nielsen
+maintainer:
+copyright:
+category:            Network
+build-type:          Simple
+-- extra-source-files:
+cabal-version:       >=1.10
+
+library
+  hs-source-dirs:      .
+  exposed-modules:     Constellation.Configure.Main
+                       Constellation.Enclave
+                       Constellation.Enclave.Key
+                       Constellation.Enclave.Keygen.Main
+                       Constellation.Enclave.Main
+                       Constellation.Enclave.Payload
+                       Constellation.Enclave.Types
+                       Constellation.Node
+                       Constellation.Node.Api
+                       Constellation.Node.Config
+                       Constellation.Node.Main
+                       Constellation.Node.Storage.BerkeleyDb
+                       -- Constellation.Node.Storage.LevelDb
+                       Constellation.Node.Storage.Memory
+                       -- Constellation.Node.Storage.Sqlite
+                       Constellation.Node.Types
+                       Constellation.Util.Argon2
+                       Constellation.Util.AtExit
+                       Constellation.Util.ByteString
+                       Constellation.Util.Either
+                       Constellation.Util.Exception
+                       Constellation.Util.Lockable
+                       Constellation.Util.Logging
+                       Constellation.Util.Memory
+                       Constellation.Util.Network
+                       Constellation.Util.Text
+                       Constellation.Util.Wai
+  ghc-options:         -Wall
+  build-depends:       base >= 4.9
+                     , aeson >= 0.11
+                     , argon2 >= 1.2
+                     , async >= 2.1
+                     , auto-update >= 0.1.4
+                     , base64-bytestring >= 1.0.0.1
+                     , BerkeleyDB >= 0.8.7
+                     , binary >= 0.8.3
+                     , byteable >= 0.1.1
+                     , bytestring >= 0.10.8
+                     , classy-prelude >= 1.0.0.2
+                     , conduit >= 1.2.8
+                     , containers >= 0.5.7
+                     , cryptonite >= 0.19
+                     , data-default >= 0.7.1.1
+                     , directory >= 1.2.6.2
+                     , either >= 4.4
+                     , entropy >= 0.3
+                     , hashable >= 1.2.4
+                     , haskeline >= 0.7.2.3
+                     , htoml >= 1.0.0.1
+                     , http-conduit >= 2.1
+                     , http-types
+                     -- , lens
+                     -- , leveldb-haskell
+                     , logging >= 3.0.4
+                     , memory >= 0.13
+                     , network >= 2.6.3.1
+                     , network-uri >= 2.6.1.0
+                     , raw-strings-qq >= 1.1
+                     -- , resource-pool
+                     , saltine >= 0.0.0.4
+                     -- , sqlite-simple
+                     , text >= 1.2.2.1
+                     , text-format >= 0.3.1.1
+                     , unordered-containers >= 0.2.7.1
+                     , wai >= 3.2.1.1
+                     , warp >= 3.2.8
+  default-language:    Haskell2010
+
+test-suite constellation-test
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  other-modules:       Constellation.Configure.Main.Test
+                       Constellation.Enclave.Test
+                       Constellation.Enclave.Key.Test
+                       Constellation.Enclave.Keygen.Main.Test
+                       Constellation.Enclave.Main.Test
+                       Constellation.Enclave.Payload.Test
+                       Constellation.Enclave.Types.Test
+                       Constellation.Node.Test
+                       Constellation.Node.Api.Test
+                       Constellation.Node.Config.Test
+                       Constellation.Node.Main.Test
+                       Constellation.Node.Storage.BerkeleyDb.Test
+                       -- Constellation.Node.Storage.LevelDb.Test
+                       Constellation.Node.Storage.Memory.Test
+                       -- Constellation.Node.Storage.Sqlite.Test
+                       Constellation.Node.Types.Test
+                       Constellation.TestUtil
+                       Constellation.Util.AtExit.Test
+                       Constellation.Util.ByteString.Test
+                       Constellation.Util.Either.Test
+                       Constellation.Util.Exception.Test
+                       Constellation.Util.Lockable.Test
+                       Constellation.Util.Logging.Test
+                       Constellation.Util.Memory.Test
+                       Constellation.Util.Network.Test
+                       Constellation.Util.Text.Test
+                       Constellation.Util.Wai.Test
+  main-is:             Main.hs
+  ghc-options:         -threaded
+                       -Wall
+  build-depends:       constellation
+                     , base
+                     , bytestring
+                     , classy-prelude
+                     , filepath
+                     , logging
+                     , memory
+                     , QuickCheck
+                     , tasty
+                     , tasty-hunit
+                     , tasty-quickcheck
+                     , temporary
+                     , text
+                     , text-format
+                     , unordered-containers
+                     , warp
+  default-language:    Haskell2010
+
+executable constellation-node
+  hs-source-dirs:      bin
+  main-is:             Node.hs
+  ghc-options:         -threaded
+                       -Wall
+  build-depends:       constellation
+                     , base
+  default-language:    Haskell2010
+
+executable constellation-enclave
+  hs-source-dirs:      bin
+  main-is:             Enclave.hs
+  ghc-options:         -threaded
+                       -Wall
+  build-depends:       base
+                     , constellation
+  default-language:    Haskell2010
+
+executable constellation-enclave-keygen
+  hs-source-dirs:      bin
+  main-is:             EnclaveKeygen.hs
+  ghc-options:         -threaded
+                       -Wall
+  build-depends:       base
+                     , constellation
+  default-language:    Haskell2010
+
+executable constellation-configure
+  hs-source-dirs:      bin
+  main-is:             Configure.hs
+  ghc-options:         -threaded
+                       -Wall
+  build-depends:       base
+                     , constellation
+  default-language:    Haskell2010
+
+-- executable constellation-benchmark
+--   hs-source-dirs:      bench
+--   main-is:             Main.hs
+--   ghc-options:         -threaded
+--                        -Wall
+--   build-depends:       base
+--                      , constellation
+--                      , criterion
+--   default-language:    Haskell2010
+
+source-repository head
+  type:     git
+  location: https://github.com/noirqs/constellation
