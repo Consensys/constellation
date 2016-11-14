@@ -143,14 +143,14 @@ executable constellation-node
                      , base
   default-language:    Haskell2010
 
-executable constellation-enclave
-  hs-source-dirs:      bin
-  main-is:             Enclave.hs
-  ghc-options:         -threaded
-                       -Wall
-  build-depends:       base
-                     , constellation
-  default-language:    Haskell2010
+-- executable constellation-enclave
+--   hs-source-dirs:      bin
+--   main-is:             Enclave.hs
+--   ghc-options:         -threaded
+--                        -Wall
+--   build-depends:       base
+--                      , constellation
+--   default-language:    Haskell2010
 
 executable constellation-enclave-keygen
   hs-source-dirs:      bin
@@ -161,14 +161,14 @@ executable constellation-enclave-keygen
                      , constellation
   default-language:    Haskell2010
 
-executable constellation-configure
-  hs-source-dirs:      bin
-  main-is:             Configure.hs
-  ghc-options:         -threaded
-                       -Wall
-  build-depends:       base
-                     , constellation
-  default-language:    Haskell2010
+-- executable constellation-configure
+--   hs-source-dirs:      bin
+--   main-is:             Configure.hs
+--   ghc-options:         -threaded
+--                        -Wall
+--   build-depends:       base
+--                      , constellation
+--   default-language:    Haskell2010
 
 -- executable constellation-benchmark
 --   hs-source-dirs:      bench
