@@ -4,7 +4,8 @@ Constellation forms a network of nodes, each of which advertises a list of
 public keys that they are the recipient for. Each node exposes an API which
 allows the user to send a payload to one or more public keys. That payload
 will be encrypted for the public key before being transferred over the wire
-to the recipient node.
+to the recipient node. You can think of it as a network of Mail Transfer
+Agents (MTAs) exchanging PGP-encrypted emails.
 
 ## Downloading precompiled binaries
 
