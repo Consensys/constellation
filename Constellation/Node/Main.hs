@@ -65,7 +65,6 @@ run Config{..} = do
             { encryptPayload = enclaveEncryptPayload e
             , decryptPayload = enclaveDecryptPayload e
             }
-    -- TODO: cfgLevelDbPath should be a generic filepath
     logf' "Initializing storage {}" [cfgStoragePath]
     storage <- berkeleyDbStorage cfgStoragePath
     -- storage <- memoryStorage
