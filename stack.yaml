@@ -17,6 +17,12 @@
 #  location: "./custom-snapshot.yaml"
 resolver: lts-7.5
 
+
+packages:
+- '.'
+- location:
+    git: git@github.com:cartazio/argon2.git
+    commit: f5c2b02d1f09510f9e4964dadb53f7da4b1859bb
 # User packages to be built.
 # Various formats can be used as shown in the example below.
 # 
@@ -35,12 +41,10 @@ resolver: lts-7.5
 # A package marked 'extra-dep: true' will only be built if demanded by a
 # non-dependency (i.e. a user package), and its test suites and benchmarks
 # will not be run. This is useful for tweaking upstream packages.
-packages:
-- '.'
+
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
 extra-deps:
-  - argon2-1.2.0
   - BerkeleyDB-0.8.7
   - logging-3.0.4
   - saltine-0.0.0.4
