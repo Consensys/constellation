@@ -7,6 +7,8 @@ will be encrypted for the public key before being transferred over the wire
 to the recipient node. You can think of it as a network of Mail Transfer
 Agents (MTAs) exchanging PGP-encrypted emails.
 
+## Installation
+
 ### Prerequisites
 
   1. Install supporting libraries:
@@ -14,11 +16,11 @@ Agents (MTAs) exchanging PGP-encrypted emails.
     - Red Hat: `dnf install libdb-devel sodium-devel zlib-devel ncurses-devel`
     - MacOS: `brew install berkeley-db libsodium`
 
-## Downloading precompiled binaries
+### Downloading precompiled binaries
 
 Constellation binaries for most major platforms can be downloaded [here](https://github.com/jpmorganchase/constellation/releases).
 
-## Installation from source
+### Installation from source
 
   1. First time only: Install Stack:
     - Linux: `curl -sSL https://get.haskellstack.org/ | sh`
