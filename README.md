@@ -7,27 +7,24 @@ will be encrypted for the public key before being transferred over the wire
 to the recipient node. You can think of it as a network of Mail Transfer
 Agents (MTAs) exchanging PGP-encrypted emails.
 
+### Prerequisites
+
+  1. Install supporting libraries:
+    - Ubuntu: `apt-get install libdb-dev libsodium-dev zlib1g-dev libtinfo-dev`
+    - Red Hat: `dnf install libdb-devel sodium-devel zlib-devel ncurses-devel`
+    - MacOS: `brew install berkeley-db libsodium`
+
 ## Downloading precompiled binaries
 
 Constellation binaries for most major platforms can be downloaded [here](https://github.com/jpmorganchase/constellation/releases).
 
 ## Installation from source
 
-### Prerequisites
-
-  1. Install Stack:
+  1. First time only: Install Stack:
     - Linux: `curl -sSL https://get.haskellstack.org/ | sh`
     - MacOS: `brew install haskell-stack`
-
-  2. Install dependencies:
-    - Ubuntu: `apt-get install libdb-dev libsodium-dev zlib1g-dev libtinfo-dev`
-    - Red Hat: `dnf install libdb-devel sodium-devel zlib-devel ncurses-devel`
-    - MacOS: `brew install berkeley-db libsodium`
-
-### Building the Binaries
-
-  1. First time only: run `stack setup` to install the Haskell compiler
-  2. Run `stack install`
+  2. First time only: run `stack setup` to install the Haskell compiler
+  3. Run `stack install`
 
 ## Generating keys
 
