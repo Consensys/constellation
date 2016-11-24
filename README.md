@@ -43,6 +43,9 @@ Constellation binaries for most major platforms can be downloaded [here](https:/
 
   1. Run `constellation-node <path to config file>`
 
+For now, please refer to the [Constellation client Go library](https://github.com/jpmorganchase/quorum/blob/master/private/constellation/node.go)
+for an example of how to use Constellation. More detailed documentation coming soon!
+
 ## Configuration File Format
 
     # Externally accessible URL for this node (this is what's advertised)
