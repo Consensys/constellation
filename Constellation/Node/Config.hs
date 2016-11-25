@@ -20,6 +20,7 @@ data Config = Config
     , cfgArchivalPublicKeyPath  :: !FilePath
     , cfgArchivalPrivateKeyPath :: !FilePath
     , cfgStoragePath            :: !String
+    , cfgIpWhitelist            :: ![String]
     } deriving Show
 
 instance FromJSON Config where
@@ -33,6 +34,7 @@ instance FromJSON Config where
         <*> v .: "archivalPublicKeyPath"
         <*> v .: "archivalPrivateKeyPath"
         <*> v .: "storagePath"
+        <*> v .: "ipWhitelist"
     parseJSON _          = mzero
 
 loadConfigFile :: FilePath -> IO (Either String Config)

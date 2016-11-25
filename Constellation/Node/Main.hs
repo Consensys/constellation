@@ -7,6 +7,7 @@ import ClassyPrelude hiding (log)
 import Control.Concurrent (forkIO)
 import Control.Logging
     (LogLevel(LevelDebug, LevelWarn), setLogLevel, withStderrLogging, log')
+import Data.Text.Format (Shown(Shown))
 import GHC.Conc (getNumProcessors)
 import Network.Socket
     ( Family(AF_UNIX), SocketType(Stream), SockAddr(SockAddrUnix)
@@ -72,8 +73,12 @@ run Config{..} = do
         newNode crypt storage cfgUrl apub [pub]
         cfgOtherNodeUrls
     _ <- forkIO $ do
-        logf' "External API listening on port {}" [cfgPort]
-        Warp.run cfgPort $ NodeApi.app False nvar
+        logf' "External API listening on 0.0.0.0 port {}" [cfgPort]
+        let mwl = if null cfgIpWhitelist
+                then Nothing
+                else Just $ NodeApi.whitelist cfgIpWhitelist
+        logf' "Connection whitelist: {}" [Shown mwl]
+        Warp.run cfgPort $ NodeApi.app mwl False nvar
     _ <- forkIO $ do
         let sockPath = T.unpack cfgSocketPath
         logf' "Internal API listening on {}" [sockPath]
@@ -81,7 +86,8 @@ run Config{..} = do
         sock <- socket AF_UNIX Stream 0
         bind sock $ SockAddrUnix sockPath
         listen sock maxListenQueue
-        Warp.runSettingsSocket Warp.defaultSettings sock $ NodeApi.app True nvar
+        Warp.runSettingsSocket Warp.defaultSettings sock $
+            NodeApi.app Nothing True nvar
         close sock
     registerAtExit $ do
         log' "Shutting down... (Interrupting this will cause the next startup to take longer)"
