@@ -73,11 +73,13 @@ run Config{..} = do
         newNode crypt storage cfgUrl apub [pub]
         cfgOtherNodeUrls
     _ <- forkIO $ do
-        logf' "External API listening on 0.0.0.0 port {}" [cfgPort]
         let mwl = if null cfgIpWhitelist
                 then Nothing
                 else Just $ NodeApi.whitelist cfgIpWhitelist
-        logf' "Connection whitelist: {}" [Shown mwl]
+        logf' "External API listening on 0.0.0.0 port {} with whitelist: {}"
+            ( cfgPort
+            , Shown $ if isNothing mwl then ["Disabled"] else cfgIpWhitelist
+            )
         Warp.run cfgPort $ NodeApi.app mwl False nvar
     _ <- forkIO $ do
         let sockPath = T.unpack cfgSocketPath
