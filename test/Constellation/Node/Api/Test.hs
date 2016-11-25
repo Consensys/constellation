@@ -4,9 +4,13 @@ module Constellation.Node.Api.Test where
 
 import ClassyPrelude
 import Control.Concurrent (forkIO)
+import Data.IP (toHostAddress, toHostAddress6)
+import Network.Socket
+    (SockAddr(SockAddrInet, SockAddrInet6, SockAddrUnix, SockAddrCan))
 import System.IO.Temp (withSystemTempDirectory)
 import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.HUnit (testCaseSteps)
+import Test.Tasty.HUnit ((@?=), testCase, testCaseSteps)
+import Text.Read (read)
 import qualified Network.Wai.Handler.Warp as Warp
 
 import Constellation.Node (nodeRefresh)
@@ -17,19 +21,34 @@ import Constellation.TestUtil (setupTestNode, link, testSendPayload)
 
 tests :: TestTree
 tests = testGroup "Constellation.Node.Api"
-    [ testSendAndReceivePayload
+    [ testWhitelist
+    , testSendAndReceivePayload
     ]
 
+testWhitelist :: TestTree
+testWhitelist = testCase "whitelist" $ do
+    let wled = NodeApi.whitelisted wl
+        wl   = NodeApi.whitelist
+            [ "10.0.0.1"
+            , "2001:0db8:85a3:0000:0000:8a2e:0370:7334"
+            ]
+    (wled $ SockAddrInet 0 $ toHostAddress $ read "10.0.0.1") @?= True
+    (wled $ SockAddrInet 0 $ toHostAddress $ read "10.0.0.2") @?= False
+    (wled $ SockAddrInet6 0 0 (toHostAddress6 $ read "2001:0db8:85a3:0000:0000:8a2e:0370:7334") 0) @?= True
+    (wled $ SockAddrInet6 0 0 (toHostAddress6 $ read "2001:0db8:85a3:0000:0000:8a2e:0370:7335") 0) @?= False
+    (wled $ SockAddrUnix "foo") @?= False
+    (wled $ SockAddrCan 42) @?= False
+
 testSendAndReceivePayload :: TestTree
-testSendAndReceivePayload = testCaseSteps "Testing sending and receiving of a payload" $ \step ->
+testSendAndReceivePayload = testCaseSteps "sendAndReceivePayload" $ \step ->
     withSystemTempDirectory "constellation-test-XXX" $ \d -> do
         step "Setting up nodes"
         (node1Var, port1) <- setupTestNode d "node1"
         (node2Var, port2) <- setupTestNode d "node2"
         (node3Var, port3) <- setupTestNode d "node3"
-        tid1 <- forkIO $ Warp.run port1 $ NodeApi.app node1Var
-        tid2 <- forkIO $ Warp.run port2 $ NodeApi.app node2Var
-        tid3 <- forkIO $ Warp.run port3 $ NodeApi.app node3Var
+        tid1 <- forkIO $ Warp.run port1 $ NodeApi.app Nothing True node1Var
+        tid2 <- forkIO $ Warp.run port2 $ NodeApi.app Nothing True node2Var
+        tid3 <- forkIO $ Warp.run port3 $ NodeApi.app Nothing True node3Var
 
         step "Linking nodes"
         atomically $ do

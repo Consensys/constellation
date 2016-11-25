@@ -66,6 +66,7 @@ library
                      , htoml >= 1.0.0.1
                      , http-conduit >= 2.1
                      , http-types
+                     , iproute >= 1.7
                      -- , lens
                      -- , leveldb-haskell
                      , logging >= 3.0.4
@@ -121,8 +122,10 @@ test-suite constellation-test
                      , bytestring
                      , classy-prelude
                      , filepath
+                     , iproute
                      , logging
                      , memory
+                     , network
                      , QuickCheck
                      , tasty
                      , tasty-hunit

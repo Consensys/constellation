@@ -8,10 +8,16 @@ import Control.Monad (void)
 import Data.Aeson
     (FromJSON(parseJSON), ToJSON(toJSON), Value(Object), (.:), (.=), object)
 import Data.Binary (encode, decodeOrFail)
+import Data.IP (IP(IPv4, IPv6), toHostAddress, toHostAddress6)
+import Data.Set (Set)
 import Data.Text.Format (Shown(Shown))
+import Network.Socket
+    (SockAddr(SockAddrInet, SockAddrInet6), HostAddress, HostAddress6)
+import Text.Read (read)
 import qualified Data.Aeson as AE
 import qualified Data.ByteString.Base64 as B64
 import qualified Data.ByteString.Lazy as BL
+import qualified Data.Set as Set
 import qualified Data.Text.Encoding as TE
 import qualified Network.Wai as Wai
 
@@ -101,8 +107,38 @@ data ApiResponse = ApiSendR SendResponse
                  | ApiUpcheckR
                  deriving (Show)
 
-app :: Bool -> TVar Node -> Wai.Application
-app allowSendReceive nvar req resp = do
+data Whitelist = Whitelist
+    { wlIPv4 :: Set HostAddress
+    , wlIPv6 :: Set HostAddress6
+    } deriving Show
+
+whitelist :: [String] -> Whitelist
+whitelist strs = Whitelist
+    { wlIPv4 = Set.fromList v4Addrs
+    , wlIPv6 = Set.fromList v6Addrs
+    }
+  where
+    (v4Addrs, v6Addrs) = foldr f ([], []) strs
+    f s (v4s, v6s)     = case read s of
+        IPv4 addr4 -> (toHostAddress addr4 : v4s, v6s)
+        IPv6 addr6 -> (v4s, toHostAddress6 addr6 : v6s)
+
+whitelisted :: Whitelist -> SockAddr -> Bool
+whitelisted Whitelist{..} (SockAddrInet _ addr)      = addr `Set.member` wlIPv4
+whitelisted Whitelist{..} (SockAddrInet6 _ _ addr _) = addr `Set.member` wlIPv6
+-- SockAddrUnix connects to the internal API which has a Nothing whitelist
+whitelisted _             _                          = False
+
+app :: Maybe Whitelist -> Bool -> TVar Node -> Wai.Application
+app (Just wl) allowSendReceive nvar req resp =
+    if whitelisted wl (Wai.remoteHost req)
+        then request allowSendReceive nvar req resp
+        else resp unauthorized
+app Nothing   allowSendReceive nvar req resp =
+    request allowSendReceive nvar req resp
+
+request :: Bool -> TVar Node -> Wai.Application
+request allowSendReceive nvar req resp = do
     b <- Wai.lazyRequestBody req
     let path = Wai.pathInfo req
     case parseRequest path b of

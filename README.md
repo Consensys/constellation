@@ -54,6 +54,11 @@ for an example of how to use Constellation. More detailed documentation coming s
     # Port to listen on
     port = 9001
 
+    # Optional IP whitelist for the external API. If unspecified/empty,
+    # connections from all sources will be allowed (but the private API remains
+    # accessible only via the IPC socket below.)
+    ipWhitelist = ["10.0.0.1", "2001:0db8:85a3:0000:0000:8a2e:0370:7334"]
+
     # Socket file to use for IPC
     socketPath = "tm1.ipc"
 
