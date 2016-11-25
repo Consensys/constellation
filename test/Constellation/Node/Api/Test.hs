@@ -32,12 +32,12 @@ testWhitelist = testCase "whitelist" $ do
             [ "10.0.0.1"
             , "2001:0db8:85a3:0000:0000:8a2e:0370:7334"
             ]
-    (wled $ SockAddrInet 0 $ toHostAddress $ read "10.0.0.1") @?= True
-    (wled $ SockAddrInet 0 $ toHostAddress $ read "10.0.0.2") @?= False
-    (wled $ SockAddrInet6 0 0 (toHostAddress6 $ read "2001:0db8:85a3:0000:0000:8a2e:0370:7334") 0) @?= True
-    (wled $ SockAddrInet6 0 0 (toHostAddress6 $ read "2001:0db8:85a3:0000:0000:8a2e:0370:7335") 0) @?= False
-    (wled $ SockAddrUnix "foo") @?= False
-    (wled $ SockAddrCan 42) @?= False
+    wled (SockAddrInet 0 $ toHostAddress $ read "10.0.0.1") @?= True
+    wled (SockAddrInet 0 $ toHostAddress $ read "10.0.0.2") @?= False
+    wled (SockAddrInet6 0 0 (toHostAddress6 $ read "2001:0db8:85a3:0000:0000:8a2e:0370:7334") 0) @?= True
+    wled (SockAddrInet6 0 0 (toHostAddress6 $ read "2001:0db8:85a3:0000:0000:8a2e:0370:7335") 0) @?= False
+    wled (SockAddrUnix "foo") @?= False
+    wled (SockAddrCan 42) @?= False
 
 testSendAndReceivePayload :: TestTree
 testSendAndReceivePayload = testCaseSteps "sendAndReceivePayload" $ \step ->
