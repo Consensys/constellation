@@ -3,7 +3,8 @@
 module Constellation.Node.Config where
 
 import ClassyPrelude
-import Data.Aeson (FromJSON(parseJSON), Value(Object), (.:), toJSON, fromJSON)
+import Data.Aeson
+    (FromJSON(parseJSON), Value(Object), (.:), (.:?), (.!=), toJSON, fromJSON)
 import Text.Toml (parseTomlDoc)
 import qualified Data.Aeson as AE
 import qualified Data.Text.IO as TIO
@@ -25,16 +26,16 @@ data Config = Config
 
 instance FromJSON Config where
     parseJSON (Object v) = Config
-        <$> v .: "url"
-        <*> v .: "port"
-        <*> v .: "socketPath"
-        <*> v .: "otherNodeUrls"
-        <*> v .: "publicKeyPath"
-        <*> v .: "privateKeyPath"
-        <*> v .: "archivalPublicKeyPath"
-        <*> v .: "archivalPrivateKeyPath"
-        <*> v .: "storagePath"
-        <*> v .: "ipWhitelist"
+        <$> v .:  "url"
+        <*> v .:  "port"
+        <*> v .:? "socketPath"    .!= "constellation.ipc"
+        <*> v .:? "otherNodeUrls" .!= []
+        <*> v .:  "publicKeyPath"
+        <*> v .:  "privateKeyPath"
+        <*> v .:  "archivalPublicKeyPath"
+        <*> v .:  "archivalPrivateKeyPath"
+        <*> v .:  "storagePath"
+        <*> v .:? "ipWhitelist"   .!= []
     parseJSON _          = mzero
 
 loadConfigFile :: FilePath -> IO (Either String Config)
