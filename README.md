@@ -13,7 +13,7 @@ Agents (MTAs) exchanging PGP-encrypted emails.
 
   1. Install supporting libraries:
     - Ubuntu: `apt-get install libdb-dev libsodium-dev zlib1g-dev libtinfo-dev`
-    - Red Hat: `dnf install libdb-devel sodium-devel zlib-devel ncurses-devel`
+    - Red Hat: `dnf install libdb-devel libsodium-devel zlib-devel ncurses-devel`
     - MacOS: `brew install berkeley-db libsodium`
 
 ### Downloading precompiled binaries
