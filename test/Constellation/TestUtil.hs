@@ -26,8 +26,7 @@ setupTestNode :: FilePath -> String -> IO (TVar Node, Int)
 setupTestNode d name = do
     kp1@(pub1, _) <- newKeyPair
     kp2@(pub2, _) <- newKeyPair
-    akp@(apub, _) <- newKeyPair
-    e             <- newEnclave' [kp1, kp2, akp]
+    e             <- newEnclave' [kp1, kp2]
     let crypt = Crypt
             { encryptPayload = enclaveEncryptPayload e
             , decryptPayload = enclaveDecryptPayload e
@@ -35,7 +34,7 @@ setupTestNode d name = do
     storage <- berkeleyDbStorage $ d </> name
     port    <- getUnusedPort
     nvar    <- newTVarIO =<<
-        newNode crypt storage (tformat "http://localhost:{}/" [port]) apub
+        newNode crypt storage (tformat "http://localhost:{}/" [port])
         [pub1, pub2] []
     return (nvar, port)
 
@@ -53,9 +52,15 @@ testSendPayload nvar onvar = do
     let key = case partitionEithers es of
             ([], [k]) -> k
             _         -> error "testSendPayload: Invalid response from sendPayload"
+    -- Verify that the recipient node can retrieve and decrypt the payload
     epl <- receivePayload onode key to
     case epl of
-        Left err  -> error $ "testSendPayload: Error receiving payload: " ++ err
+        Left err  -> error $ "testSendPayload: Recipient: Error receiving payload: " ++ err
+        Right pl' -> pl' @?= pl
+    -- Verify that the sender node can retrieve and decrypt the payload
+    epl' <- receivePayload node key to
+    case epl' of
+        Left err  -> error $ "testSendPayload: Sender: Error receiving payload: " ++ err
         Right pl' -> pl' @?= pl
 
 firstPublicKey :: Node -> PublicKey

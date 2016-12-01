@@ -54,13 +54,10 @@ run Config{..} = do
     ncpus <- getNumProcessors
     logf' "Utilizing {} core(s)" [ncpus]
     setNumCapabilities ncpus
-    let kps@[kp, akp] =
-            [ (cfgPublicKeyPath, cfgPrivateKeyPath)
-            , (cfgArchivalPublicKeyPath, cfgArchivalPrivateKeyPath)
-            ]
-    logf' "Constructing Enclave using keypairs ({}, {}) ({}, {})"
-        [fst kp, snd kp, fst akp, snd akp]
-    ks@[(pub, _), (apub, _)] <- mustLoadKeyPairs kps
+    let kps = [(cfgPublicKeyPath, cfgPrivateKeyPath)]
+    logf' "Constructing Enclave using keypair ({}, {})"
+        [cfgPublicKeyPath, cfgPrivateKeyPath]
+    ks@[(pub, _)] <- mustLoadKeyPairs kps
     e <- newEnclave' ks
     let crypt = Crypt
             { encryptPayload = enclaveEncryptPayload e
@@ -70,7 +67,7 @@ run Config{..} = do
     storage <- berkeleyDbStorage cfgStoragePath
     -- storage <- memoryStorage
     nvar    <- newTVarIO =<<
-        newNode crypt storage cfgUrl apub [pub]
+        newNode crypt storage cfgUrl [pub]
         cfgOtherNodeUrls
     _ <- forkIO $ do
         let mwl = if null cfgIpWhitelist

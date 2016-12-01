@@ -17,7 +17,6 @@ data Node = Node
     , nodeCrypt             :: !Crypt
     , nodeStorage           :: !Storage
     , nodeManager           :: !Manager
-    , nodeArchivalPublicKey :: !PublicKey
     }
 
 data PartyInfo = PartyInfo

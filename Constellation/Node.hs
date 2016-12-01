@@ -17,19 +17,18 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 
 import Constellation.Enclave.Payload
-    (EncryptedPayload(eplRcptBoxes), eplRcptBoxes)
-import Constellation.Enclave.Types (PublicKey)
+    (EncryptedPayload(eplSender, eplRcptBoxes), eplRcptBoxes)
+import Constellation.Enclave.Types (PublicKey(PublicKey, unPublicKey))
 import Constellation.Node.Types
 import Constellation.Util.Exception (trys)
 
 newNode :: Crypt
         -> Storage
         -> Text
-        -> PublicKey
         -> [PublicKey]
         -> [Text]
         -> IO Node
-newNode crypt storage url archivalPub rcpts parties = do
+newNode crypt storage url rcpts parties = do
     manager <- newManager tlsManagerSettings
         { managerConnCount = 100
         }
@@ -42,7 +41,6 @@ newNode crypt storage url archivalPub rcpts parties = do
         , nodeCrypt             = crypt
         , nodeStorage           = storage
         , nodeManager           = manager
-        , nodeArchivalPublicKey = archivalPub
         }
 
 runNode :: TVar Node -> IO ()
@@ -100,19 +98,14 @@ sendPayload :: Node
             -> [PublicKey]
             -> IO [Either String Text]
 sendPayload node@Node{..} pl from rcpts = do
-    -- Add archival box for our retrieval purposes (can't encrypt to our own
-    -- public key.)
-    eenc <- encryptPayload nodeCrypt pl from (nodeArchivalPublicKey:rcpts)
+    eenc <- encryptPayload nodeCrypt pl from rcpts
     case eenc of
         Left err  -> return [Left err]
         Right epl -> do
             ek <- savePayload nodeStorage (epl, rcpts)
             case ek of
                 Left err -> return [Left err]
-                Right _  ->
-                    -- Remove the archival box before propagating
-                    let epl' = epl { eplRcptBoxes = drop 1 $ eplRcptBoxes epl }
-                     in propagatePayload' node epl' rcpts
+                Right _  -> propagatePayload' node epl rcpts
 
 propagatePayload :: TVar Node
                  -> EncryptedPayload
@@ -146,14 +139,19 @@ receivePayload :: Node -> Text -> PublicKey -> IO (Either String ByteString)
 receivePayload Node{..} key to = do
     eepl <- loadPayload nodeStorage key
     case eepl of
-        Left err           -> return $ Left err
-        Right (epl, rcpts) -> if null rcpts
-            -- Rcpts is not set, meaning this is a payload sent to us, and
-            -- we use the expected key to decrypt.
-            then decryptPayload nodeCrypt epl to
-            -- Rcpts is set, meaning this is a payload that we sent, and we
-            -- use the archival key to decrypt.
-            else decryptPayload nodeCrypt epl nodeArchivalPublicKey
+        Left err         -> return $ Left err
+        -- Rcpts is not set, meaning this is a payload sent to us, and we use
+        -- the sender (not us) * to (us) to decrypt.
+        Right (epl, [])  -> decryptPayload nodeCrypt epl to
+        -- Rcpts is set, meaning this is a payload that we sent, and we use
+        -- rcpt1 (not us) * the sender (us) to decrypt. (We pretend that the
+        -- payload was actually sent by the first recipient to us, rather than
+        -- the other way around, since NaCl doesn't care--the same shared key
+        -- will be derived.)
+        Right (epl, r:_) -> decryptPayload nodeCrypt epl'
+            (PublicKey $ eplSender epl)
+          where
+            epl' = epl { eplSender = unPublicKey r }
 
 -- TODO: Save written values and expunge when read once (since you typically
 -- only need each payload once.)

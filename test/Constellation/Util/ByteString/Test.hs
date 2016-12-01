@@ -8,7 +8,6 @@ import qualified Data.Text.Encoding as TE
 
 import Constellation.TestUtil (kvTest)
 import Constellation.Util.ByteString (mustB64DecodeBs, mustB64TextDecodeBs)
-import Constellation.Util.Either (fromRight)
 
 tests :: TestTree
 tests = testGroup "Util.ByteString"

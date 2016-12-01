@@ -30,8 +30,7 @@ Constellation binaries for most major platforms can be downloaded [here](https:/
 
 ## Generating keys
 
-  1. To generate two key pairs, one for the node and one for archival, run
-     `constellation-enclave-keygen node archival`
+  1. To generate a key pair "node", run `constellation-enclave-keygen node`
 
   If you choose to lock the keys with a password, they will be encrypted using
   a master key derived from the password using Argon2i. This is designed to be
@@ -76,13 +75,6 @@ for an example of how to use Constellation. More detailed documentation coming s
 
     # This node's private key
     privateKeyPath = "tm1.key"
-
-    # This node's archival key (payloads sent by this node are encrypted for
-    # this key by default.)
-    archivalPublicKeyPath = "tm1a.pub"
-
-    # This node's archival private key
-    archivalPrivateKeyPath = "tm1a.key"
 
     # Where to store payloads and related information
     storagePath = "data/payloads"
