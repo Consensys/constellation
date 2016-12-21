@@ -38,6 +38,7 @@ resolver: lts-7.14
 packages:
 - '.'
 - location: https://github.com/jpmorganchase/constellation/files/590600/argon2-1.3.0.tar.gz
+  extra-dep: true
 
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
