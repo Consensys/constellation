@@ -18,8 +18,6 @@ data Config = Config
     , cfgOtherNodeUrls          :: ![Text]
     , cfgPublicKeyPath          :: !FilePath
     , cfgPrivateKeyPath         :: !FilePath
-    , cfgArchivalPublicKeyPath  :: !FilePath
-    , cfgArchivalPrivateKeyPath :: !FilePath
     , cfgStoragePath            :: !String
     , cfgIpWhitelist            :: ![String]
     } deriving Show
@@ -32,8 +30,6 @@ instance FromJSON Config where
         <*> v .:? "otherNodeUrls" .!= []
         <*> v .:  "publicKeyPath"
         <*> v .:  "privateKeyPath"
-        <*> v .:  "archivalPublicKeyPath"
-        <*> v .:  "archivalPrivateKeyPath"
         <*> v .:  "storagePath"
         <*> v .:? "ipWhitelist"   .!= []
     parseJSON _          = mzero
