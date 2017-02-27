@@ -1,15 +1,15 @@
-{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE TupleSections #-}
 module Constellation.Enclave.Key where
 
 import Prelude (putStrLn)
 import ClassyPrelude hiding (hash, putStrLn)
+import Control.Monad.Trans.Either (EitherT(EitherT), hoistEither, runEitherT)
 import qualified Data.Aeson as AE
 import qualified Crypto.Saltine.Class as S
 import qualified Crypto.Saltine.Core.Box as Box
-import Control.Monad.Trans.Either (EitherT(EitherT), hoistEither, runEitherT)
 
 import Constellation.Enclave.Types (PublicKey(PublicKey), mkPublicKey)
 import Constellation.Util.ByteString (b64TextDecodeBs)
