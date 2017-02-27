@@ -21,11 +21,11 @@ newKeyPair = do
 
 loadKeyPair :: (FilePath, FilePath)
             -> IO (Either String (PublicKey, Box.SecretKey))
-loadKeyPair (pubPath, privPath) = b64TextDecodeBs <$> readFile pubPath >>= \case
+loadKeyPair (pubPath, privPath) = b64TextDecodeBs <$> readFileUtf8 pubPath >>= \case
     Left err    -> return $ Left err
     Right pubBs -> case mkPublicKey pubBs of
         Nothing  -> return $ Left "loadKeyPair: Failed to mkPublicKey"
-        Just pub -> AE.eitherDecode' <$> readFile privPath >>= \case
+        Just pub -> AE.eitherDecode' . fromStrict <$> readFile privPath >>= \case
             Left err     -> return $ Left err
             Right locked -> do
                 putStrLn ("Unlocking " ++ privPath)
