@@ -5,13 +5,14 @@
 module Constellation.Util.Lockable where
 
 import ClassyPrelude hiding (hash)
-import Crypto.Argon2
-    ( HashOptions( HashOptions, hashIterations, hashMemory, hashParallelism
-                 , hashVariant
-                 )
-    , Argon2Variant(Argon2d, Argon2i)
+import Crypto.Error (CryptoFailable(..))
+import Crypto.KDF.Argon2
+    ( Options(..)
+    , Variant(..)
+    , Version(..)
+    , hash
     )
-import Data.Aeson (ToJSON(toJSON), FromJSON(parseJSON), (.:), (.=), object)
+import Data.Aeson (ToJSON(toJSON), FromJSON(parseJSON), (.:), (.:?), (.=), object)
 import System.Console.Haskeline (runInputT, defaultSettings, getPassword)
 import System.Entropy (getEntropy)
 import qualified Data.Aeson as AE
@@ -20,15 +21,16 @@ import qualified Data.Text.Encoding as TE
 import qualified Crypto.Saltine.Class as S
 import qualified Crypto.Saltine.Core.SecretBox as SBox
 
-import Constellation.Util.Argon2 (hash)
 import Constellation.Util.ByteString (b64TextEncodeBs, b64TextDecodeBs)
 
+
 defaultArgonOptions :: ArgonOptions
-defaultArgonOptions = ArgonOptions HashOptions
-    { hashIterations  = 10
-    , hashMemory      = (2 :: Word32) ^ (20 :: Word32)  -- 1 GiB
-    , hashParallelism = 4
-    , hashVariant     = Argon2i
+defaultArgonOptions = ArgonOptions Options
+    { iterations  = 10
+    , memory      = (2 :: Word32) ^ (20 :: Word32)  -- 1 GiB
+    , parallelism = 4
+    , variant     = Argon2i
+    , version     = Version13
     }
 
 data Lockable = Unlocked ByteString
@@ -80,33 +82,48 @@ instance FromJSON ArgonSalt where
         Right asalt -> return $ ArgonSalt asalt
     parseJSON _             = fail "ArgonSalt must be an Aeson String"
 
-newtype ArgonOptions = ArgonOptions { unArgonOptions :: HashOptions }
+newtype ArgonOptions = ArgonOptions { unArgonOptions :: Options }
+instance Show ArgonOptions where
+    show (ArgonOptions options) = show options
+instance Eq ArgonOptions where
+    (==) (ArgonOptions options) (ArgonOptions options') = options == options'
 
 instance ToJSON ArgonOptions where
-    toJSON (ArgonOptions HashOptions{..}) = object
-        [ "iterations"  .= hashIterations
-        , "memory"      .= hashMemory
-        , "parallelism" .= hashParallelism
-        , "variant"     .= case hashVariant of
-              Argon2i -> "i" :: Text
-              Argon2d -> "d" :: Text
+    toJSON (ArgonOptions Options{..}) = object
+        [ "iterations"  .= iterations
+        , "memory"      .= memory
+        , "parallelism" .= parallelism
+        , "variant"     .= case variant of
+              Argon2i  -> "i"  :: Text
+              Argon2d  -> "d"  :: Text
+              Argon2id -> "id" :: Text
+        , "version"     .= case version of
+              Version13 -> "1.3" :: Text
+              Version10 -> "1.0" :: Text
         ]
 
 instance FromJSON ArgonOptions where
     parseJSON (AE.Object v) = do
-        iter   <- v .: "iterations"
-        mem    <- v .: "memory"
-        par    <- v .: "parallelism"
-        varStr <- v .: "variant"
+        iter   <- v .:  "iterations"
+        mem    <- v .:  "memory"
+        par    <- v .:  "parallelism"
+        varStr <- v .:  "variant"
+        verStr <- v .:? "version"
         var    <- case varStr :: Text of
-            "i" -> return Argon2i
-            "d" -> return Argon2d
+            "i"  -> return Argon2i
+            "d"  -> return Argon2d
+            "id" -> return Argon2id
             _   -> fail "Unrecognized Argon2 variant"
-        return $ ArgonOptions HashOptions
-            { hashIterations  = iter
-            , hashMemory      = mem
-            , hashParallelism = par
-            , hashVariant     = var
+        ver    <- case verStr :: Maybe Text of
+            Just "1.3" -> return Version13
+            Just "1.0" -> return Version10
+            _          -> return Version13
+        return $ ArgonOptions Options
+            { iterations  = iter
+            , memory      = mem
+            , parallelism = par
+            , variant     = var
+            , version     = ver
             }
     parseJSON _             = fail "ArgonOptions must be an Aeson Object"
 
@@ -136,7 +153,9 @@ lock pwd b = do
 
 deriveKey :: ArgonSalt -> ArgonOptions -> String -> ByteString
 deriveKey (ArgonSalt asalt) (ArgonOptions hopts) pwd =
-    hash hopts 32 (TE.encodeUtf8 $ T.pack pwd) asalt
+    case hash hopts (TE.encodeUtf8 $ T.pack pwd) asalt 32 of
+      CryptoPassed a -> a
+      CryptoFailed e -> error $ "deriveKey failed: " ++ show e
 
 unlock :: String -> Lockable -> Either String ByteString
 unlock _   (Unlocked b)                                  = Right b
@@ -158,4 +177,6 @@ promptingUnlock locked       = runInputT defaultSettings prompt
             Just ""  -> prompt
             Just pwd -> case unlock pwd locked of
                 Left _  -> putStrLn "Invalid password. Try again." >> prompt
-                Right b -> return $ Right b
+                Right b -> do
+                  putStrLn "Unlocked"
+                  return $ Right b
