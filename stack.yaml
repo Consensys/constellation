@@ -42,9 +42,9 @@ packages:
 # (e.g., acme-missiles-0.3)
 extra-deps:
   - BerkeleyDB-0.8.7
+  - cryptonite-0.22
   - logging-3.0.4
   - saltine-0.0.0.4
-  - cryptonite-0.22
 
 # Override default flag values for local packages and extra-deps
 flags: {}

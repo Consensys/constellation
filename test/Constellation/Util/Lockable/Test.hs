@@ -2,25 +2,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Constellation.Util.Lockable.Test where
 
+import ClassyPrelude
+import Crypto.KDF.Argon2 (Options(..), Variant(..), Version(..))
+import Data.Aeson (encode, decode)
 import Data.Tuple (swap)
+import Test.Tasty (TestTree, testGroup)
+import Test.Tasty.HUnit ((@?=), testCase)
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
 
-import ClassyPrelude
-import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.HUnit ((@?=), testCase)
-import Data.Aeson (encode, decode)
-
 import Constellation.TestUtil (kvTest)
 import Constellation.Util.Lockable
-    ( ArgonOptions (ArgonOptions)
-    , defaultArgonOptions 
-    )
-import Crypto.KDF.Argon2
-    ( Options(..)
-    , Variant(..)
-    , Version(..)
-    )
+    (ArgonOptions (ArgonOptions), defaultArgonOptions)
 
 tests :: TestTree
 tests = testGroup "Util.Lockable"

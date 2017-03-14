@@ -6,12 +6,7 @@ module Constellation.Util.Lockable where
 
 import ClassyPrelude hiding (hash)
 import Crypto.Error (CryptoFailable(..))
-import Crypto.KDF.Argon2
-    ( Options(..)
-    , Variant(..)
-    , Version(..)
-    , hash
-    )
+import Crypto.KDF.Argon2 (Options(..), Variant(..), Version(..), hash)
 import Data.Aeson (ToJSON(toJSON), FromJSON(parseJSON), (.:), (.:?), (.=), object)
 import System.Console.Haskeline (runInputT, defaultSettings, getPassword)
 import System.Entropy (getEntropy)
@@ -83,8 +78,10 @@ instance FromJSON ArgonSalt where
     parseJSON _             = fail "ArgonSalt must be an Aeson String"
 
 newtype ArgonOptions = ArgonOptions { unArgonOptions :: Options }
+
 instance Show ArgonOptions where
     show (ArgonOptions options) = show options
+
 instance Eq ArgonOptions where
     (==) (ArgonOptions options) (ArgonOptions options') = options == options'
 
