@@ -5,21 +5,22 @@ module Constellation.Util.Lockable.Test where
 import ClassyPrelude
 import Crypto.KDF.Argon2 (Options(..), Variant(..), Version(..))
 import Data.Aeson (encode, decode)
-import Data.Tuple (swap)
+import Data.Maybe (fromJust)
 import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.HUnit ((@?=), testCase)
+import Test.Tasty.HUnit ((@?=), testCase, assertFailure)
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
 
 import Constellation.TestUtil (kvTest)
 import Constellation.Util.Lockable
-    (ArgonOptions (ArgonOptions), defaultArgonOptions)
+    (ArgonOptions (ArgonOptions), defaultArgonOptions, unlock)
 
 tests :: TestTree
 tests = testGroup "Util.Lockable"
     [ testToJsonFromArgonOptions
     , testFromJsonToArgonOptions
     , testFromJsonToArgonOptionsNoVersion
+    , testUnlockV0
     ]
 
 argonOptionsKvs :: [(ArgonOptions, Text)]
@@ -53,3 +54,11 @@ testFromJsonToArgonOptionsNoVersion = testCase "testFromJsonToArgonOptionsNoVers
     
 justKvsSwap :: (a, b) -> (b, Maybe a)
 justKvsSwap (a, b) = (b, Just a)
+
+testUnlockV0 :: TestTree
+testUnlockV0 = testCase "testUnlockV0" $
+    case unlock "foo" $ fromJust $ decode oldKey of
+        Right _ -> return ()
+        Left _  -> assertFailure "Unlock failed"
+  where
+    oldKey = "{\"data\":{\"aopts\":{\"variant\":\"i\",\"memory\":8192,\"iterations\":2,\"parallelism\":2},\"snonce\":\"LJ7QUiZ0kD/mPf/aHvCEQKDhlUucZM0s\",\"asalt\":\"I5bvdFhNpr8hlknzOHIO7Q3S5Ubs9ucUdVneghrebZQ=\",\"sbox\":\"iHJAfcpWWE5PsvwZRwr5gCtwMKu7xXZAAPCVRGfx06l/I5QgXs0V/czOqYsMxoEG\"},\"type\":\"argon2sbox\"}"
