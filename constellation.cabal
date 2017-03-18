@@ -2,7 +2,7 @@ name:                constellation
 version:             0.1.0.0
 synopsis:            Constellation
 description:         Constellation
-homepage:            https://github.com/noirqs/constellation
+homepage:            https://github.com/jpmorganchase/constellation
 license:             Apache-2.0
 license-file:        LICENSE
 author:              Patrick Nielsen
@@ -31,7 +31,6 @@ library
                        Constellation.Node.Storage.Memory
                        -- Constellation.Node.Storage.Sqlite
                        Constellation.Node.Types
-                       Constellation.Util.Argon2
                        Constellation.Util.AtExit
                        Constellation.Util.ByteString
                        Constellation.Util.Either
@@ -45,7 +44,6 @@ library
   ghc-options:         -Wall
   build-depends:       base >= 4.9
                      , aeson >= 0.11
-                     , argon2 >= 1.2
                      , async >= 2.1
                      , auto-update >= 0.1.4
                      , base64-bytestring >= 1.0.0.1
@@ -56,7 +54,7 @@ library
                      , classy-prelude >= 1.0.0.2
                      , conduit >= 1.2.8
                      , containers >= 0.5.7
-                     , cryptonite >= 0.19
+                     , cryptonite >= 0.22
                      , data-default >= 0.7.1.1
                      , directory >= 1.2.6.2
                      , either >= 4.4
@@ -119,8 +117,10 @@ test-suite constellation-test
                        -Wall
   build-depends:       constellation
                      , base
+                     , aeson
                      , bytestring
                      , classy-prelude
+                     , cryptonite
                      , filepath
                      , iproute
                      , logging
@@ -185,4 +185,4 @@ executable constellation-enclave-keygen
 
 source-repository head
   type:     git
-  location: https://github.com/noirqs/constellation
+  location: https://github.com/jpmorganchase/constellation
