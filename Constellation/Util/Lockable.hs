@@ -18,7 +18,6 @@ import qualified Crypto.Saltine.Core.SecretBox as SBox
 
 import Constellation.Util.ByteString (b64TextEncodeBs, b64TextDecodeBs)
 
-
 defaultArgonOptions :: ArgonOptions
 defaultArgonOptions = ArgonOptions Options
     { iterations  = 10
