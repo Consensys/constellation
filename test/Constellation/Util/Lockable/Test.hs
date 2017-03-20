@@ -50,7 +50,7 @@ testFromJsonToArgonOptions = kvTest "fromJsonToArgonOptions"
 testFromJsonToArgonOptionsNoVersion :: TestTree
 testFromJsonToArgonOptionsNoVersion = testCase "testFromJsonToArgonOptionsNoVersion" $
     decode "{\"variant\":\"i\",\"memory\":1048576,\"iterations\":10,\"parallelism\":4}"
-    @?= (Just defaultArgonOptions)
+    @?= Just defaultArgonOptions
     
 justKvsSwap :: (a, b) -> (b, Maybe a)
 justKvsSwap (a, b) = (b, Just a)
