@@ -74,6 +74,7 @@ library
                      , raw-strings-qq >= 1.1
                      -- , resource-pool
                      , saltine >= 0.0.0.4
+                     , split >= 0.2.3.1
                      -- , sqlite-simple
                      , text >= 1.2.2.1
                      , text-format >= 0.3.1.1

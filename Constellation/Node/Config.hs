@@ -1,30 +1,34 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase #-}
 module Constellation.Node.Config where
 
 import ClassyPrelude
 import Data.Aeson
     (FromJSON(parseJSON), Value(Object), (.:), (.:?), (.!=), toJSON, fromJSON)
 import Data.Default (Default, def)
-import System.Console.GetOpt (OptDescr, Option)
+import Data.List.Split (splitOn)
+import System.Console.GetOpt
+    (OptDescr(Option), ArgOrder(Permute), ArgDescr(OptArg), getOpt, usageInfo)
 import System.Exit (exitSuccess)
 import Text.Toml (parseTomlDoc)
 import qualified Data.Aeson as AE
+import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 
 import Constellation.Util.Exception (trys)
 
 data Config = Config
-    { cfgUrl                    :: !Text
-    , cfgPort                   :: !Int
-    , cfgSocketPath             :: !Text
-    , cfgOtherNodeUrls          :: ![Text]
-    , cfgPublicKeyPath          :: !FilePath
-    , cfgPrivateKeyPath         :: !FilePath
-    , cfgStoragePath            :: !String
-    , cfgIpWhitelist            :: ![String]
-    , cfgJustShowVersion        :: !Bool
-    , cfgVerbose                :: !Bool
+    { cfgUrl             :: !Text
+    , cfgPort            :: !Int
+    , cfgSocketPath      :: !Text
+    , cfgOtherNodeUrls   :: ![Text]
+    , cfgPublicKeyPaths  :: ![FilePath]
+    , cfgPrivateKeyPaths :: ![FilePath]
+    , cfgStoragePath     :: !String
+    , cfgIpWhitelist     :: ![String]
+    , cfgJustShowVersion :: !Bool
+    , cfgVerbose         :: !Bool
     } deriving Show
 
 instance Default Config where
@@ -33,8 +37,8 @@ instance Default Config where
         , cfgPort            = 0
         , cfgSocketPath      = "constellation.ipc"
         , cfgOtherNodeUrls   = []
-        , cfgPublicKeyPath   = ""
-        , cfgPrivateKeyPath  = ""
+        , cfgPublicKeyPaths  = []
+        , cfgPrivateKeyPaths = []
         , cfgStoragePath     = "storage"
         , cfgIpWhitelist     = []
         , cfgJustShowVersion = False
@@ -42,88 +46,93 @@ instance Default Config where
         }
 
 instance FromJSON Config where
-    parseJSON (Object v) = Config
-        <$> v .:  "url"
-        <*> v .:  "port"
-        <*> v .:? "socketPath"    .!= "constellation.ipc"
-        <*> v .:? "otherNodeUrls" .!= []
-        <*> v .:  "publicKeyPath"
-        <*> v .:  "privateKeyPath"
-        <*> v .:  "storagePath"
-        <*> v .:? "ipWhitelist"   .!= []
+    parseJSON (Object v) = undefined
     parseJSON _          = mzero
 
 options :: [OptDescr (Config -> Config)]
 options =
-    [ Option [] ["url"] (OptArg $ maybe "" setUrl)
+    [ Option [] ["url"] (OptArg $ justDo setUrl)
       "URL for this node (what's advertised to other nodes, e.g. https://constellation.mydomain.com/)"
 
-    , Option [] ["port"] (OptArg $ maybe 0 setPort)
+    , Option [] ["port"] (OptArg $ justDo setPort)
       "Port to listen on"
 
-    , Option [] ["socketpath"] (OptArg setSocketPath)
+    , Option [] ["socketpath"] (OptArg $ justDo setSocketPath)
       "Path to IPC socket file"
 
-    , Option [] ["othernodeurls"] (OptArg setOtherNodeUrls)
+    , Option [] ["othernodeurls"] (OptArg $ justDo setOtherNodeUrls)
       "(Possibly incomplete list of) other node URLs"
 
-    , Option [] ["publickeypath"] (OptArg setPublicKeyPath)
+    , Option [] ["publickeys", "publickey", "publickeypath"] (OptArg $ justDo setPublicKeyPaths)
       "Path to the public key to advertise"
 
-    , Option [] ["privatekeypath"] (OptArg setPrivateKeyPath)
+    , Option [] ["privatekeys", "privatekey", "privatekeypath"] (OptArg $ justDo setPrivateKeyPaths)
       "Path to the public key's corresponding private key"
 
-    , Option [] ["storagepath"] (OptArg setStoragePath)
+    , Option [] ["storage", "storagepath"] (OptArg $ justDo setStoragePath)
       "Storage path to pass to the storage engine"
 
-    , Option [] ["ipwhitelist"] (OptArg setIpWhitelist)
-        (OptArg (\c s -> 
-        "Comma-separated list of IPv4 and IPv6 addresses that may connect to this node's external API"
+    , Option [] ["ipwhitelist"] (OptArg $ justDo setIpWhitelist)
+      "Comma-separated list of IPv4 and IPv6 addresses that may connect to this node's external API"
 
-    , Option ['v'] ["verbose"]
-        (NoArg (\c -> c { cfgVerbose = True }))
-        "print more detailed information"
+    , Option ['v'] ["verbose"] (OptArg setVerbose)
+      "print more detailed information"
 
-    , Option ['V', '?'] ["version"]
-        (NoArg (\c -> c { cfgJustShowVersion = True }))
+    , Option ['V', '?'] ["version"] (OptArg setVersion)
+      "output current version information and exit"
     ]
 
+justDo :: (String -> Config -> Config) -> Maybe String -> Config -> Config
+justDo _ Nothing  c = c
+justDo f (Just s) c = f s c
+
 setUrl :: String -> Config -> Config
-setUrl Nothing  c = c
-setUrl (Just s) c = c { cfgUrl = s }
+setUrl s c = c { cfgUrl = T.pack s }
 
 setPort :: String -> Config -> Config
-setPort Nothing c = c
-setPort (Just s)  = c { cfgPort = read s }
+setPort s c = c { cfgPort = read s }
 
 setSocketPath :: String -> Config -> Config
-setSocketPath Nothing c = c
-setSocketPath (Just s)  = c { cfgSocketPath = s }
+setSocketPath s c = c { cfgSocketPath = T.pack s }
 
 setOtherNodeUrls :: String -> Config -> Config
-setOtherNodeUrls Nothing c = c
-setOtherNodeUrls (Just s)  = c { cfgOtherNodeUrls = map trimBoth $ splitOn "," s }
+setOtherNodeUrls s c = c { cfgOtherNodeUrls = map (T.pack . trimBoth) (splitOn "," s) }
 
-setPublicKeyPath :: String -> Config -> Config
-setPublicKeyPath Nothing c = c
-setPublicKeyPath (Just s)  = c { cfgPublicKeyPath = s }
+setPublicKeyPaths :: String -> Config -> Config
+setPublicKeyPaths s c = c { cfgPublicKeyPaths = map trimBoth (splitOn "," s) }
 
-setPrivateKeyPath :: String -> Config -> Config
-setPrivateKeyPath Nothing c = c
-setPrivateKeyPath (Just s)  = c { cfgPrivateKeyPath = s }
+setPrivateKeyPaths :: String -> Config -> Config
+setPrivateKeyPaths s c = c { cfgPrivateKeyPaths = map trimBoth (splitOn "," s) }
 
 setStoragePath :: String -> Config -> Config
-setStoragePath Nothing c = c
-setStoragePath (Just s)  = c { cfgSocketPath = s }
+setStoragePath s c = c { cfgSocketPath = T.pack s }
 
 setIpWhitelist :: String -> Config -> Config
-setIpWhitelist s = c { cfgIpWhitelist = map trimBoth $ splitOn "," s }
+setIpWhitelist s c = c { cfgIpWhitelist = map trimBoth (splitOn "," s) }
 
 setVerbose :: Config -> Config
-setVerbose = c { cfgVerbose = True }
+setVerbose c = c { cfgVerbose = True }
 
 setVersion :: Config -> Config
-setVersion = c { cfgJustShowVersion = True }
+setVersion c = c { cfgJustShowVersion = True }
+
+extractConfig :: [String] -> IO (Config, [String])
+extractConfig []   = errorOut "" >> undefined
+extractConfig argv = case getOpt Permute options argv of
+    (o, n, [])   -> do
+        initCfg <- case n of
+            []        -> def
+            [cfgPath] -> loadConfigFile cfgPath >>= \case
+                Left err  -> errorOut ("Failed to load configuration file " ++ cfgPath ++ ": " ++ err)
+                Right cfg -> return cfg
+            _         -> errorOut "Only one configuration file can be specified"
+        return (foldl' (flip id) initCfg o, n)
+    (_, _, errs) -> errorOut (concat errs) >> undefined
+
+errorOut :: String -> IO ()
+errorOut s = ioError (userError $ s ++ usageInfo header options)
+  where
+    header = "Usage: constellation-node [OPTION...] [config file containing options]\n(If a configuration file is specified, any command line options will take precedence.)"
 
 loadConfigFile :: FilePath -> IO (Either String Config)
 loadConfigFile fpath = do

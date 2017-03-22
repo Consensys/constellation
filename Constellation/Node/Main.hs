@@ -14,7 +14,6 @@ import Network.Socket
     , socket, bind, listen, maxListenQueue, close
     )
 import System.Directory (doesFileExist, removeFile)
-import System.Environment (getProgName)
 import qualified Data.Text as T
 import qualified Data.Text.Format as TF
 import qualified Network.Wai.Handler.Warp as Warp
@@ -40,22 +39,20 @@ version = "0.1"
 
 defaultMain :: IO ()
 defaultMain = do
-    args <- getArgs
-    case args of
-        [cfgPath] -> withStderrLogging $ do
+    args     <- getArgs
+    (cfg, _) <- extractConfig args
+    if cfgJustShowVersion cfg
+        then putStrLn ("Constellation Node " ++ version)
+        else withStderrLogging $ do
             logf' "Constellation initializing using config file {}" [cfgPath]
-            loadConfigFile (T.unpack cfgPath) >>= \ecfg -> case ecfg of
-                Left err  -> warnf' "Error parsing configuration file: {}" [err]
-                Right cfg -> if cfgJustShowVersion cfg $
-                    then putStrLn ("Constellation Node " ++ version)
-                    else run cfg
-        _         -> usage
+            run cfg
 
 run :: Config -> IO ()
-run Config{..} = do
+run cfg@Config{..} = do
     let logLevel = if cfgVerbose then LevelDebug else LevelWarn
     logf' "Log level is {}" [show logLevel]
     setLogLevel logLevel
+    logf' "Configuration: {}" [show cfg]
     ncpus <- getNumProcessors
     logf' "Utilizing {} core(s)" [ncpus]
     setNumCapabilities ncpus
@@ -103,8 +100,3 @@ run Config{..} = do
 resetSocket :: FilePath -> IO ()
 resetSocket sockPath = doesFileExist sockPath >>= \exists ->
     when exists $ removeFile sockPath
-
-usage :: IO ()
-usage = do
-    name <- getProgName
-    TF.print "Usage: {} config.toml\n" [name]
