@@ -35,6 +35,9 @@ import Constellation.Util.AtExit (registerAtExit, withAtExit)
 import Constellation.Util.Logging (logf', warnf')
 import qualified Constellation.Node.Api as NodeApi
 
+version :: Text
+version = "0.1"
+
 defaultMain :: IO ()
 defaultMain = do
     args <- getArgs
@@ -43,12 +46,14 @@ defaultMain = do
             logf' "Constellation initializing using config file {}" [cfgPath]
             loadConfigFile (T.unpack cfgPath) >>= \ecfg -> case ecfg of
                 Left err  -> warnf' "Error parsing configuration file: {}" [err]
-                Right cfg -> run cfg
+                Right cfg -> if cfgJustShowVersion cfg $
+                    then putStrLn ("Constellation Node " ++ version)
+                    else run cfg
         _         -> usage
 
 run :: Config -> IO ()
 run Config{..} = do
-    let logLevel = LevelWarn
+    let logLevel = if cfgVerbose then LevelDebug else LevelWarn
     logf' "Log level is {}" [show logLevel]
     setLogLevel logLevel
     ncpus <- getNumProcessors
