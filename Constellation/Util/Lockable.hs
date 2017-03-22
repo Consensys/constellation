@@ -150,8 +150,8 @@ lock pwd b = do
 deriveKey :: ArgonSalt -> ArgonOptions -> String -> ByteString
 deriveKey (ArgonSalt asalt) (ArgonOptions hopts) pwd =
     case hash hopts (TE.encodeUtf8 $ T.pack pwd) asalt 32 of
-      CryptoPassed a -> a
-      CryptoFailed e -> error $ "deriveKey failed: " ++ show e
+        CryptoPassed a -> a
+        CryptoFailed e -> error $ "deriveKey failed: " ++ show e
 
 unlock :: String -> Lockable -> Either String ByteString
 unlock _   (Unlocked b)                                  = Right b
