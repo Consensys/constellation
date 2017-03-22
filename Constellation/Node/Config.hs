@@ -29,6 +29,7 @@ data Config = Config
     , cfgOtherNodeUrls   :: ![Text]
     , cfgPublicKeyPaths  :: ![FilePath]
     , cfgPrivateKeyPaths :: ![FilePath]
+    , cfgPasswordsPath   :: !FilePath
     , cfgStoragePath     :: !String
     , cfgIpWhitelist     :: ![String]
     , cfgJustShowVersion :: !Bool
@@ -43,6 +44,7 @@ instance Default Config where
         , cfgOtherNodeUrls   = []
         , cfgPublicKeyPaths  = []
         , cfgPrivateKeyPaths = []
+        , cfgPasswordsPath   = ""
         , cfgStoragePath     = "storage"
         , cfgIpWhitelist     = []
         , cfgJustShowVersion = False
@@ -61,19 +63,22 @@ options =
     , Option [] ["port"] (OptArg (justDo setPort) "PORT")
       "Port to listen on for the external API"
 
-    , Option [] ["socketpath"] (OptArg (justDo setSocketPath) "FILE")
+    , Option [] ["socket"] (OptArg (justDo setSocketPath) "FILE")
       "Path to IPC socket file to create for internal API access"
 
     , Option [] ["othernodeurls"] (OptArg (justDo setOtherNodeUrls) "URLs")
       "Comma-separated list of other node URLs to connect to on startup (this list may be incomplete)"
 
-    , Option [] ["publickeys", "publickey", "publickeypath"] (OptArg (justDo setPublicKeyPaths) "FILE")
+    , Option [] ["publickeys"] (OptArg (justDo setPublicKeyPaths) "FILE")
       "Comma-separated list of paths to public keys to advertise"
 
-    , Option [] ["privatekeys", "privatekey", "privatekeypath"] (OptArg (justDo setPrivateKeyPaths) "FILE")
+    , Option [] ["privatekeys"] (OptArg (justDo setPrivateKeyPaths) "FILE")
       "Comma-separated list of paths to corresponding private keys (these must be given in the same order as --publickeys)"
 
-    , Option [] ["storage", "storagepath"] (OptArg (justDo setStoragePath) "FILE")
+    , Option [] ["password"] (OptArg (justDo setPasswordsPath) "FILE")
+      "A file containing the passwords for the specified --privatekeys, one per line, in the same order (if one key is not locked, add an empty line)"
+
+    , Option [] ["storage"] (OptArg (justDo setStoragePath) "FILE")
       "Storage path to pass to the storage engine"
 
     , Option [] ["ipwhitelist"] (OptArg (justDo setIpWhitelist) "IPv4s/IPv6s")
@@ -107,6 +112,9 @@ setPublicKeyPaths s c = c { cfgPublicKeyPaths = map trimBoth (splitOn "," s) }
 
 setPrivateKeyPaths :: String -> Config -> Config
 setPrivateKeyPaths s c = c { cfgPrivateKeyPaths = map trimBoth (splitOn "," s) }
+
+setPasswordsPath :: String -> Config -> Config
+setPasswordsPath s c = c { cfgPasswordsPath = s }
 
 setStoragePath :: String -> Config -> Config
 setStoragePath s c = c { cfgSocketPath = T.pack s }

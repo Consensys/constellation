@@ -57,7 +57,10 @@ run cfg@Config{..} = do
     setNumCapabilities ncpus
     let kps = zip cfgPublicKeyPaths cfgPrivateKeyPaths
     logf' "Constructing Enclave using keypairs {}" [show kps]
-    ks <- mustLoadKeyPairs kps
+    pwds <- if cfgPasswordsPath == ""
+        then return []
+        else lines <$> readFileUtf8 cfgPasswordsPath
+    ks <- mustLoadKeyPairs pwds kps
     e  <- newEnclave' ks
     let crypt = Crypt
             { encryptPayload = enclaveEncryptPayload e
