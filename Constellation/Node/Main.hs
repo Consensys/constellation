@@ -3,7 +3,7 @@
 {-# LANGUAGE RecordWildCards #-}
 module Constellation.Node.Main where
 
-import ClassyPrelude hiding (log)
+import ClassyPrelude hiding (getArgs, log)
 import Control.Concurrent (forkIO)
 import Control.Logging
     (LogLevel(LevelDebug, LevelWarn), setLogLevel, withStderrLogging, log')
@@ -14,6 +14,7 @@ import Network.Socket
     , socket, bind, listen, maxListenQueue, close
     )
 import System.Directory (doesFileExist, removeFile)
+import System.Environment (getArgs)
 import qualified Data.Text as T
 import qualified Data.Text.Format as TF
 import qualified Network.Wai.Handler.Warp as Warp
@@ -29,7 +30,7 @@ import Constellation.Node.Types
     , Crypt(Crypt, encryptPayload, decryptPayload)
     , Storage(closeStorage)
     )
-import Constellation.Node.Config (Config(..), loadConfigFile)
+import Constellation.Node.Config (Config(..), extractConfig)
 import Constellation.Util.AtExit (registerAtExit, withAtExit)
 import Constellation.Util.Logging (logf', warnf')
 import qualified Constellation.Node.Api as NodeApi
@@ -43,9 +44,7 @@ defaultMain = do
     (cfg, _) <- extractConfig args
     if cfgJustShowVersion cfg
         then putStrLn ("Constellation Node " ++ version)
-        else withStderrLogging $ do
-            logf' "Constellation initializing using config file {}" [cfgPath]
-            run cfg
+        else withStderrLogging $ run cfg
 
 run :: Config -> IO ()
 run cfg@Config{..} = do
@@ -56,11 +55,10 @@ run cfg@Config{..} = do
     ncpus <- getNumProcessors
     logf' "Utilizing {} core(s)" [ncpus]
     setNumCapabilities ncpus
-    let kps = [(cfgPublicKeyPath, cfgPrivateKeyPath)]
-    logf' "Constructing Enclave using keypair ({}, {})"
-        [cfgPublicKeyPath, cfgPrivateKeyPath]
-    ks@[(pub, _)] <- mustLoadKeyPairs kps
-    e <- newEnclave' ks
+    let kps = zip cfgPublicKeyPaths cfgPrivateKeyPaths
+    logf' "Constructing Enclave using keypairs {}" [show kps]
+    ks <- mustLoadKeyPairs kps
+    e  <- newEnclave' ks
     let crypt = Crypt
             { encryptPayload = enclaveEncryptPayload e
             , decryptPayload = enclaveDecryptPayload e
@@ -69,7 +67,7 @@ run cfg@Config{..} = do
     storage <- berkeleyDbStorage cfgStoragePath
     -- storage <- memoryStorage
     nvar    <- newTVarIO =<<
-        newNode crypt storage cfgUrl [pub]
+        newNode crypt storage cfgUrl (map fst ks)
         cfgOtherNodeUrls
     _ <- forkIO $ do
         let mwl = if null cfgIpWhitelist

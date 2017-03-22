@@ -39,6 +39,7 @@ library
                        Constellation.Util.Logging
                        Constellation.Util.Memory
                        Constellation.Util.Network
+                       Constellation.Util.String
                        Constellation.Util.Text
                        Constellation.Util.Wai
   ghc-options:         -Wall
@@ -111,6 +112,7 @@ test-suite constellation-test
                        Constellation.Util.Logging.Test
                        Constellation.Util.Memory.Test
                        Constellation.Util.Network.Test
+                       Constellation.Util.String.Test
                        Constellation.Util.Text.Test
                        Constellation.Util.Wai.Test
   main-is:             Main.hs

@@ -9,14 +9,18 @@ import Data.Aeson
 import Data.Default (Default, def)
 import Data.List.Split (splitOn)
 import System.Console.GetOpt
-    (OptDescr(Option), ArgOrder(Permute), ArgDescr(OptArg), getOpt, usageInfo)
+    ( OptDescr(Option), ArgOrder(Permute), ArgDescr(NoArg, OptArg)
+    , getOpt, usageInfo
+    )
 import System.Exit (exitSuccess)
+import Text.Read (read)
 import Text.Toml (parseTomlDoc)
 import qualified Data.Aeson as AE
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 
 import Constellation.Util.Exception (trys)
+import Constellation.Util.String (trimBoth)
 
 data Config = Config
     { cfgUrl             :: !Text
@@ -51,34 +55,34 @@ instance FromJSON Config where
 
 options :: [OptDescr (Config -> Config)]
 options =
-    [ Option [] ["url"] (OptArg $ justDo setUrl)
+    [ Option [] ["url"] (OptArg (justDo setUrl) "URL")
       "URL for this node (what's advertised to other nodes, e.g. https://constellation.mydomain.com/)"
 
-    , Option [] ["port"] (OptArg $ justDo setPort)
-      "Port to listen on"
+    , Option [] ["port"] (OptArg (justDo setPort) "PORT")
+      "Port to listen on for the external API"
 
-    , Option [] ["socketpath"] (OptArg $ justDo setSocketPath)
-      "Path to IPC socket file"
+    , Option [] ["socketpath"] (OptArg (justDo setSocketPath) "FILE")
+      "Path to IPC socket file to create for internal API access"
 
-    , Option [] ["othernodeurls"] (OptArg $ justDo setOtherNodeUrls)
-      "(Possibly incomplete list of) other node URLs"
+    , Option [] ["othernodeurls"] (OptArg (justDo setOtherNodeUrls) "URLs")
+      "Comma-separated list of other node URLs to connect to on startup (this list may be incomplete)"
 
-    , Option [] ["publickeys", "publickey", "publickeypath"] (OptArg $ justDo setPublicKeyPaths)
-      "Path to the public key to advertise"
+    , Option [] ["publickeys", "publickey", "publickeypath"] (OptArg (justDo setPublicKeyPaths) "FILE")
+      "Comma-separated list of paths to public keys to advertise"
 
-    , Option [] ["privatekeys", "privatekey", "privatekeypath"] (OptArg $ justDo setPrivateKeyPaths)
-      "Path to the public key's corresponding private key"
+    , Option [] ["privatekeys", "privatekey", "privatekeypath"] (OptArg (justDo setPrivateKeyPaths) "FILE")
+      "Comma-separated list of paths to corresponding private keys (these must be given in the same order as --publickeys)"
 
-    , Option [] ["storage", "storagepath"] (OptArg $ justDo setStoragePath)
+    , Option [] ["storage", "storagepath"] (OptArg (justDo setStoragePath) "FILE")
       "Storage path to pass to the storage engine"
 
-    , Option [] ["ipwhitelist"] (OptArg $ justDo setIpWhitelist)
+    , Option [] ["ipwhitelist"] (OptArg (justDo setIpWhitelist) "IPv4s/IPv6s")
       "Comma-separated list of IPv4 and IPv6 addresses that may connect to this node's external API"
 
-    , Option ['v'] ["verbose"] (OptArg setVerbose)
+    , Option ['v'] ["verbose"] (NoArg setVerbose)
       "print more detailed information"
 
-    , Option ['V', '?'] ["version"] (OptArg setVersion)
+    , Option ['V', '?'] ["version"] (NoArg setVersion)
       "output current version information and exit"
     ]
 
@@ -117,7 +121,7 @@ setVersion :: Config -> Config
 setVersion c = c { cfgJustShowVersion = True }
 
 extractConfig :: [String] -> IO (Config, [String])
-extractConfig []   = errorOut "" >> undefined
+extractConfig []   = errorOut ""
 extractConfig argv = case getOpt Permute options argv of
     (o, n, [])   -> do
         initCfg <- case n of
@@ -127,10 +131,10 @@ extractConfig argv = case getOpt Permute options argv of
                 Right cfg -> return cfg
             _         -> errorOut "Only one configuration file can be specified"
         return (foldl' (flip id) initCfg o, n)
-    (_, _, errs) -> errorOut (concat errs) >> undefined
+    (_, _, errs) -> errorOut (concat errs)
 
-errorOut :: String -> IO ()
-errorOut s = ioError (userError $ s ++ usageInfo header options)
+-- errorOut :: String -> a
+errorOut s = ioError (userError $ s ++ usageInfo header options) >> undefined
   where
     header = "Usage: constellation-node [OPTION...] [config file containing options]\n(If a configuration file is specified, any command line options will take precedence.)"
 
