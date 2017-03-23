@@ -103,13 +103,13 @@ options =
     , Option [] ["socket"] (OptArg (justDo setSocket) "FILE")
       "Path to IPC socket file to create for internal API access"
 
-    , Option [] ["othernodes"] (OptArg (justDo setOtherNodes) "URLS")
+    , Option [] ["othernodes"] (OptArg (justDo setOtherNodes) "URL...")
       "Comma-separated list of other node URLs to connect to on startup (this list may be incomplete)"
 
-    , Option [] ["publickeys"] (OptArg (justDo setPublicKeys) "FILES")
+    , Option [] ["publickeys"] (OptArg (justDo setPublicKeys) "FILE...")
       "Comma-separated list of paths to public keys to advertise"
 
-    , Option [] ["privatekeys"] (OptArg (justDo setPrivateKeys) "FILES")
+    , Option [] ["privatekeys"] (OptArg (justDo setPrivateKeys) "FILE...")
       "Comma-separated list of paths to corresponding private keys (these must be given in the same order as --publickeys)"
 
     , Option [] ["passwords"] (OptArg (justDo setPasswords) "FILE")
@@ -118,7 +118,7 @@ options =
     , Option [] ["storage"] (OptArg (justDo setStorage) "FILE")
       "Storage path to pass to the storage engine"
 
-    , Option [] ["ipwhitelist"] (OptArg (justDo setIpWhitelist) "IPS")
+    , Option [] ["ipwhitelist"] (OptArg (justDo setIpWhitelist) "IP...")
       "Comma-separated list of IPv4 and IPv6 addresses that may connect to this node's external API"
 
     , Option ['v'] ["verbosity"] (OptArg setVerbosity "NUM")
@@ -184,7 +184,7 @@ extractConfig argv = case getOpt Permute options argv of
     (_, _, errs) -> errorOut (concat errs)
 
 errorOut :: String -> IO a
-errorOut s = ioError (userError $ s ++ usageInfo header options) >> undefined
+errorOut s = ioError (userError $ s ++ ". " ++ usageInfo header options) >> undefined
   where
     header = "Usage: constellation-node [OPTION...] [config file containing options]\n(If a configuration file is specified, any command line options will take precedence.)"
 
