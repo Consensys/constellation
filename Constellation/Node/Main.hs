@@ -7,7 +7,7 @@ import ClassyPrelude hiding (getArgs, log)
 import Control.Concurrent (forkIO)
 import Control.Logging
     ( LogLevel(LevelDebug, LevelInfo, LevelWarn, LevelError)
-    , setLogLevel, withStderrLogging, log'
+    , setLogLevel, withStderrLogging, log', errorL'
     )
 import Data.Text.Format (Shown(Shown))
 import GHC.Conc (getNumProcessors)
@@ -48,8 +48,6 @@ defaultMain = do
         then putStrLn ("Constellation Node " ++ version)
         else withStderrLogging $ run cfg
 
-errorOut s = ioError (userError "foo") -- TEMP
-
 run :: Config -> IO ()
 run cfg@Config{..} = do
     let logLevel = case cfgVerbosity of
@@ -69,9 +67,11 @@ run cfg@Config{..} = do
             readFileUtf8 passPath
         Nothing       -> return $ replicate (length cfgPublicKeys) Nothing
     when (length cfgPublicKeys /= length cfgPrivateKeys) $
-        errorOut "The same amount of public keys and private keys must be specified"
+        errorL' "The same amount of public keys and private keys must be specified"
     when (length cfgPublicKeys /= length pwds) $
-        errorOut "The same amount of passwords must be included in the passwords file as the number of private keys. (If a private key has no password, include a blank line.)"
+        errorL' "The same amount of passwords must be included in the passwords file as the number of private keys. (If a private key has no password, include a blank line.)"
+    when (cfgPort == 0) $
+        errorL' "A listening port must be specified with 'port' in the configuration file or --port at runtime"
     let kps = zip3 cfgPublicKeys cfgPrivateKeys pwds
     logf' "Constructing Enclave using keypairs {}" [show kps]
     ks <- mustLoadKeyPairs kps

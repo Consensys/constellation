@@ -4,6 +4,7 @@
 module Constellation.Node.Config where
 
 import ClassyPrelude
+import Control.Logging (errorL')
 import Data.Aeson
     (FromJSON(parseJSON), Value(Object), (.:), (.:?), (.!=), toJSON, fromJSON)
 import Data.Default (Default, def)
@@ -111,7 +112,7 @@ options =
     , Option [] ["privatekeys"] (OptArg (justDo setPrivateKeys) "FILES")
       "Comma-separated list of paths to corresponding private keys (these must be given in the same order as --publickeys)"
 
-    , Option [] ["password"] (OptArg (justDo setPasswords) "FILE")
+    , Option [] ["passwords"] (OptArg (justDo setPasswords) "FILE")
       "A file containing the passwords for the specified --privatekeys, one per line, in the same order (if one key is not locked, add an empty line)"
 
     , Option [] ["storage"] (OptArg (justDo setStorage) "FILE")
