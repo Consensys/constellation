@@ -55,16 +55,22 @@ instance FromJSON Config where
     -- JSON instance for conversion from TOML
     parseJSON (Object v) = do
         -- DEPRECATE: Backwards compatibility with v0.0.1 config format
-        moldOnodes <- v .:? "otherNodeUrls"
-        case moldOnodes of
-            Just oldOnodes -> do
-                cfg      <- parse
-                pubKeys  <- maybeToList <$> v .:? "publicKeyPath"
-                privKeys <- maybeToList <$> v .:? "privateKeyPath"
+        moldPrivPath <- v .:? "privateKeyPath"
+        case moldPrivPath of
+            Just oldPrivPath -> do
+                cfg        <- parse
+                msocket    <- v .:? "socketPath"
+                otherNodes <- v .:? "otherNodeUrls" .!= []
+                pubKeys    <- maybeToList <$> v .:? "publicKeyPath"
+                storage    <- v .:? "storagePath" .!= "storage"
+                ipwl       <- v .:? "ipWhitelist" .!= []
                 return cfg
-                    { cfgOtherNodes  = oldOnodes
+                    { cfgSocket      = msocket
+                    , cfgOtherNodes  = otherNodes
                     , cfgPublicKeys  = pubKeys
-                    , cfgPrivateKeys = privKeys
+                    , cfgPrivateKeys = [oldPrivPath]
+                    , cfgStorage     = storage
+                    , cfgIpWhitelist = ipwl
                     }
             Nothing        -> parse
       where
