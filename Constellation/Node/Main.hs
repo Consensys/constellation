@@ -6,7 +6,9 @@ module Constellation.Node.Main where
 import ClassyPrelude hiding (getArgs, log)
 import Control.Concurrent (forkIO)
 import Control.Logging
-    (LogLevel(LevelDebug, LevelWarn), setLogLevel, withStderrLogging, log')
+    ( LogLevel(LevelDebug, LevelInfo, LevelWarn, LevelError)
+    , setLogLevel, withStderrLogging, log'
+    )
 import Data.Text.Format (Shown(Shown))
 import GHC.Conc (getNumProcessors)
 import Network.Socket
@@ -50,7 +52,12 @@ errorOut s = ioError (userError "foo") -- TEMP
 
 run :: Config -> IO ()
 run cfg@Config{..} = do
-    let logLevel = if cfgVerbose then LevelDebug else LevelWarn
+    let logLevel = case cfgVerbosity of
+            0 -> LevelError
+            1 -> LevelWarn
+            2 -> LevelInfo
+            3 -> LevelDebug
+            _ -> LevelDebug
     logf' "Log level is {}" [show logLevel]
     setLogLevel logLevel
     debugf' "Configuration: {}" [show cfg]

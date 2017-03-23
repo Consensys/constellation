@@ -23,7 +23,7 @@ data Enclave = Enclave
     }
 
 newEnclave :: [(FilePath, FilePath, Maybe String)] -> IO (Either String Enclave)
-newEnclave keys = loadKeyPairs keys >>= \case
+newEnclave ks = loadKeyPairs ks >>= \case
     Left err  -> return $ Left err
     Right kps -> Right <$> newEnclave' kps
 

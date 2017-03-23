@@ -14,7 +14,7 @@ import qualified Crypto.Saltine.Core.Box as Box
 import Constellation.Enclave.Types (PublicKey(PublicKey), mkPublicKey)
 import Constellation.Util.ByteString (b64TextDecodeBs)
 import Constellation.Util.Either (fromShowRight, flattenEithers, maybeToEitherT)
-import Constellation.Util.Lockable (promptingUnlock)
+import Constellation.Util.Lockable (unlock, promptingUnlock)
 
 newKeyPair :: IO (PublicKey, Box.SecretKey)
 newKeyPair = do
@@ -29,13 +29,16 @@ loadKeyPair (pubPath, privPath, mpwd) = runEitherT $ do
               (mkPublicKey pubBs)
     locked <- EitherT $ AE.eitherDecode' . fromStrict <$> readFile privPath
     liftIO $ putStrLn $ "Unlocking " ++ privPath
-    privBs <- EitherT $ promptingUnlock locked
+    privBs <- EitherT $ case mpwd of
+        Just pwd -> return $ unlock pwd locked
+        Nothing  -> promptingUnlock locked
+    liftIO $ putStrLn $ "Unlocked" ++ privPath
     (pub,) <$> maybeToEitherT "Failed to S.encode privBs" (S.decode privBs)
 
 loadKeyPairs :: [(FilePath, FilePath, Maybe String)]
              -> IO (Either String [(PublicKey, Box.SecretKey)])
-loadKeyPairs keys = flattenEithers "; " <$> mapM loadKeyPair keys
+loadKeyPairs ks = flattenEithers "; " <$> mapM loadKeyPair ks
 
 mustLoadKeyPairs :: [(FilePath, FilePath, Maybe String)]
                  -> IO [(PublicKey, Box.SecretKey)]
-mustLoadKeyPairs keys = fromShowRight <$> loadKeyPairs keys
+mustLoadKeyPairs ks = fromShowRight <$> loadKeyPairs ks

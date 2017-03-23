@@ -33,7 +33,7 @@ data Config = Config
     , cfgStorage         :: !String
     , cfgIpWhitelist     :: ![String]
     , cfgJustShowVersion :: !Bool
-    , cfgVerbose         :: !Bool  -- another level for debug?
+    , cfgVerbosity       :: !Int
     } deriving Show
 
 instance Default Config where
@@ -48,42 +48,61 @@ instance Default Config where
         , cfgStorage         = "storage"
         , cfgIpWhitelist     = []
         , cfgJustShowVersion = False
-        , cfgVerbose         = False
+        , cfgVerbosity       = defaultVerbosity
         }
 
 instance FromJSON Config where
-    parseJSON (Object v) = Config
-        <$> v .:? "url"         .!= ""
-        <*> v .:? "port"        .!= 0
-        <*> v .:? "socket"
-        <*> v .:? "otherNodes"  .!= []
-        <*> v .:? "publicKeys"  .!= []
-        <*> v .:? "privateKeys" .!= []
-        <*> v .:? "passwords"
-        <*> v .:? "storage"     .!= "storage"
-        <*> v .:? "ipWhitelist" .!= []
-        <*> pure False
-        <*> v .:? "verbose"     .!= False
+    -- JSON instance for conversion from TOML
+    parseJSON (Object v) = do
+        -- DEPRECATE: Backwards compatibility with v0.0.1 config format
+        moldOnodes <- v .:? "otherNodeUrls"
+        case moldOnodes of
+            Just oldOnodes -> do
+                cfg      <- parse
+                pubKeys  <- maybeToList <$> v .:? "publicKeyPath"
+                privKeys <- maybeToList <$> v .:? "privateKeyPath"
+                return cfg
+                    { cfgOtherNodes  = oldOnodes
+                    , cfgPublicKeys  = pubKeys
+                    , cfgPrivateKeys = privKeys
+                    }
+            Nothing        -> parse
+      where
+        parse = Config
+            <$> v .:? "url"         .!= ""
+            <*> v .:? "port"        .!= 0
+            <*> v .:? "socket"
+            <*> v .:? "othernodes"  .!= []
+            <*> v .:? "publickeys"  .!= []
+            <*> v .:? "privatekeys" .!= []
+            <*> v .:? "passwords"
+            <*> v .:? "storage"     .!= "storage"
+            <*> v .:? "ipwhitelist" .!= []
+            <*> pure False
+            <*> v .:? "verbosity"   .!= 1
     parseJSON _          = mzero
+
+defaultVerbosity :: Int
+defaultVerbosity = 1  -- Warnings by default
 
 options :: [OptDescr (Config -> Config)]
 options =
     [ Option [] ["url"] (OptArg (justDo setUrl) "URL")
       "URL for this node (what's advertised to other nodes, e.g. https://constellation.mydomain.com/)"
 
-    , Option [] ["port"] (OptArg (justDo setPort) "PORT")
+    , Option [] ["port"] (OptArg (justDo setPort) "NUM")
       "Port to listen on for the external API"
 
     , Option [] ["socket"] (OptArg (justDo setSocket) "FILE")
       "Path to IPC socket file to create for internal API access"
 
-    , Option [] ["otherNodes"] (OptArg (justDo setOtherNodes) "URLs")
+    , Option [] ["othernodes"] (OptArg (justDo setOtherNodes) "URLS")
       "Comma-separated list of other node URLs to connect to on startup (this list may be incomplete)"
 
-    , Option [] ["publicKeys"] (OptArg (justDo setPublicKeys) "FILE")
+    , Option [] ["publickeys"] (OptArg (justDo setPublicKeys) "FILES")
       "Comma-separated list of paths to public keys to advertise"
 
-    , Option [] ["privateKeys"] (OptArg (justDo setPrivateKeys) "FILE")
+    , Option [] ["privatekeys"] (OptArg (justDo setPrivateKeys) "FILES")
       "Comma-separated list of paths to corresponding private keys (these must be given in the same order as --publickeys)"
 
     , Option [] ["password"] (OptArg (justDo setPasswords) "FILE")
@@ -92,11 +111,11 @@ options =
     , Option [] ["storage"] (OptArg (justDo setStorage) "FILE")
       "Storage path to pass to the storage engine"
 
-    , Option [] ["ipWhitelist"] (OptArg (justDo setIpWhitelist) "IPv4s/IPv6s")
+    , Option [] ["ipwhitelist"] (OptArg (justDo setIpWhitelist) "IPS")
       "Comma-separated list of IPv4 and IPv6 addresses that may connect to this node's external API"
 
-    , Option ['v'] ["verbose"] (NoArg setVerbose)
-      "print more detailed information"
+    , Option ['v'] ["verbosity"] (OptArg setVerbosity "NUM")
+      "print more detailed information (optionally specify a number or add v's to increase verbosity)"
 
     , Option ['V', '?'] ["version"] (NoArg setVersion)
       "output current version information and exit"
@@ -133,14 +152,19 @@ setStorage s c = c { cfgStorage = s }
 setIpWhitelist :: String -> Config -> Config
 setIpWhitelist s c = c { cfgIpWhitelist = map trimBoth (splitOn "," s) }
 
-setVerbose :: Config -> Config
-setVerbose c = c { cfgVerbose = True }
+setVerbosity :: Maybe String -> Config -> Config
+setVerbosity (Just s) c = c { cfgVerbosity = n }
+  where
+    n = if all (== 'v') s
+            then 2 + length s  -- -v+(length s) v's
+            else read s  -- assume a number was given
+setVerbosity Nothing  c = c { cfgVerbosity = 2 }  -- '-v' given, increase to info
 
 setVersion :: Config -> Config
 setVersion c = c { cfgJustShowVersion = True }
 
 extractConfig :: [String] -> IO (Config, [String])
-extractConfig []   = errorOut ""
+extractConfig []   = errorOut "No arguments given"
 extractConfig argv = case getOpt Permute options argv of
     (o, n, [])   -> do
         initCfg <- case n of
@@ -152,7 +176,7 @@ extractConfig argv = case getOpt Permute options argv of
         return (foldl' (flip id) initCfg o, n)
     (_, _, errs) -> errorOut (concat errs)
 
--- errorOut :: String -> a
+errorOut :: String -> IO a
 errorOut s = ioError (userError $ s ++ usageInfo header options) >> undefined
   where
     header = "Usage: constellation-node [OPTION...] [config file containing options]\n(If a configuration file is specified, any command line options will take precedence.)"

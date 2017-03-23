@@ -173,6 +173,4 @@ promptingUnlock locked       = runInputT defaultSettings prompt
             Just ""  -> prompt
             Just pwd -> case unlock pwd locked of
                 Left _  -> putStrLn "Invalid password. Try again." >> prompt
-                Right b -> do
-                  putStrLn "Unlocked"
-                  return $ Right b
+                Right b -> return $ Right b

@@ -17,12 +17,11 @@ tests = testGroup "Util.String"
     ]
 
 testTrimLeft :: TestTree
-testTrimLeft = testProperty "trimLeft"
-    (\x -> null $ takeWhile isSpace $ trimLeft x)
+testTrimLeft = testProperty "trimLeft" (null . takeWhile isSpace . trimLeft)
 
 testTrimRight :: TestTree
 testTrimRight = testProperty "trimRight"
-    (\x -> null $ takeWhile isSpace $ reverse $ trimRight x)
+    (null . takeWhile isSpace . reverse . trimRight)
 
 testTrimBoth :: TestTree
 testTrimBoth = testProperty "trimBoth"
