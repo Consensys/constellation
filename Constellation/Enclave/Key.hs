@@ -32,7 +32,7 @@ loadKeyPair (pubPath, privPath, mpwd) = runEitherT $ do
     privBs <- EitherT $ case mpwd of
         Just pwd -> return $ unlock pwd locked
         Nothing  -> promptingUnlock locked
-    liftIO $ putStrLn $ "Unlocked" ++ privPath
+    liftIO $ putStrLn $ "Unlocked " ++ privPath
     (pub,) <$> maybeToEitherT "Failed to S.encode privBs" (S.decode privBs)
 
 loadKeyPairs :: [(FilePath, FilePath, Maybe String)]
