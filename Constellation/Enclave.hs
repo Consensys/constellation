@@ -22,8 +22,8 @@ data Enclave = Enclave
     , enclaveComboCache :: TVar (HM.HashMap (PublicKey, PublicKey) Box.CombinedKey)
     }
 
-newEnclave :: [(FilePath, FilePath)] -> IO (Either String Enclave)
-newEnclave keyPaths = loadKeyPairs keyPaths >>= \case
+newEnclave :: [(FilePath, FilePath, Maybe String)] -> IO (Either String Enclave)
+newEnclave keys = loadKeyPairs keys >>= \case
     Left err  -> return $ Left err
     Right kps -> Right <$> newEnclave' kps
 

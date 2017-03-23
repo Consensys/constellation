@@ -21,20 +21,21 @@ newKeyPair = do
     (priv, pub) <- Box.newKeypair
     return (PublicKey pub, priv)
 
-loadKeyPair :: (FilePath, FilePath)
+loadKeyPair :: (FilePath, FilePath, Maybe String)
             -> IO (Either String (PublicKey, Box.SecretKey))
-loadKeyPair (pubPath, privPath) = runEitherT $ do
-    pubBs <- EitherT $ b64TextDecodeBs <$> readFileUtf8 pubPath
-    pub <- maybeToEitherT "loadKeyPair: Failed to mkPublicKey"
-                          (mkPublicKey pubBs)
+loadKeyPair (pubPath, privPath, mpwd) = runEitherT $ do
+    pubBs  <- EitherT $ b64TextDecodeBs <$> readFileUtf8 pubPath
+    pub    <- maybeToEitherT "loadKeyPair: Failed to mkPublicKey"
+              (mkPublicKey pubBs)
     locked <- EitherT $ AE.eitherDecode' . fromStrict <$> readFile privPath
-    liftIO $ putStrLn ("Unlocking " ++ privPath)
+    liftIO $ putStrLn $ "Unlocking " ++ privPath
     privBs <- EitherT $ promptingUnlock locked
     (pub,) <$> maybeToEitherT "Failed to S.encode privBs" (S.decode privBs)
 
-loadKeyPairs :: [(FilePath, FilePath)]
+loadKeyPairs :: [(FilePath, FilePath, Maybe String)]
              -> IO (Either String [(PublicKey, Box.SecretKey)])
-loadKeyPairs kpaths = flattenEithers "; " <$> mapM loadKeyPair kpaths
+loadKeyPairs keys = flattenEithers "; " <$> mapM loadKeyPair keys
 
-mustLoadKeyPairs :: [(FilePath, FilePath)] -> IO [(PublicKey, Box.SecretKey)]
-mustLoadKeyPairs kpaths = fromShowRight <$> loadKeyPairs kpaths
+mustLoadKeyPairs :: [(FilePath, FilePath, Maybe String)]
+                 -> IO [(PublicKey, Box.SecretKey)]
+mustLoadKeyPairs keys = fromShowRight <$> loadKeyPairs keys

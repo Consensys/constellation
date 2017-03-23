@@ -32,7 +32,7 @@ import Constellation.Node.Types
     )
 import Constellation.Node.Config (Config(..), extractConfig)
 import Constellation.Util.AtExit (registerAtExit, withAtExit)
-import Constellation.Util.Logging (logf', warnf')
+import Constellation.Util.Logging (debugf', logf', warnf')
 import qualified Constellation.Node.Api as NodeApi
 
 version :: Text
@@ -46,32 +46,39 @@ defaultMain = do
         then putStrLn ("Constellation Node " ++ version)
         else withStderrLogging $ run cfg
 
+errorOut s = ioError (userError "foo") -- TEMP
+
 run :: Config -> IO ()
 run cfg@Config{..} = do
     let logLevel = if cfgVerbose then LevelDebug else LevelWarn
     logf' "Log level is {}" [show logLevel]
     setLogLevel logLevel
-    logf' "Configuration: {}" [show cfg]
+    debugf' "Configuration: {}" [show cfg]
     ncpus <- getNumProcessors
     logf' "Utilizing {} core(s)" [ncpus]
     setNumCapabilities ncpus
-    let kps = zip cfgPublicKeyPaths cfgPrivateKeyPaths
+    pwds <- case cfgPasswords of
+        Just passPath -> (map (Just . T.unpack) . lines) <$>
+            readFileUtf8 passPath
+        Nothing       -> return $ replicate (length cfgPublicKeys) Nothing
+    when (length cfgPublicKeys /= length cfgPrivateKeys) $
+        errorOut "The same amount of public keys and private keys must be specified"
+    when (length cfgPublicKeys /= length pwds) $
+        errorOut "The same amount of passwords must be included in the passwords file as the number of private keys. (If a private key has no password, include a blank line.)"
+    let kps = zip3 cfgPublicKeys cfgPrivateKeys pwds
     logf' "Constructing Enclave using keypairs {}" [show kps]
-    pwds <- if cfgPasswordsPath == ""
-        then return []
-        else lines <$> readFileUtf8 cfgPasswordsPath
-    ks <- mustLoadKeyPairs pwds kps
+    ks <- mustLoadKeyPairs kps
     e  <- newEnclave' ks
     let crypt = Crypt
             { encryptPayload = enclaveEncryptPayload e
             , decryptPayload = enclaveDecryptPayload e
             }
-    logf' "Initializing storage {}" [cfgStoragePath]
-    storage <- berkeleyDbStorage cfgStoragePath
+    logf' "Initializing storage {}" [cfgStorage]
+    storage <- berkeleyDbStorage cfgStorage
     -- storage <- memoryStorage
     nvar    <- newTVarIO =<<
         newNode crypt storage cfgUrl (map fst ks)
-        cfgOtherNodeUrls
+        cfgOtherNodes
     _ <- forkIO $ do
         let mwl = if null cfgIpWhitelist
                 then Nothing
@@ -81,19 +88,22 @@ run cfg@Config{..} = do
             , Shown $ if isNothing mwl then ["Disabled"] else cfgIpWhitelist
             )
         Warp.run cfgPort $ NodeApi.app mwl False nvar
-    _ <- forkIO $ do
-        let sockPath = T.unpack cfgSocketPath
-        logf' "Internal API listening on {}" [sockPath]
-        resetSocket sockPath
-        sock <- socket AF_UNIX Stream 0
-        bind sock $ SockAddrUnix sockPath
-        listen sock maxListenQueue
-        Warp.runSettingsSocket Warp.defaultSettings sock $
-            NodeApi.app Nothing True nvar
-        close sock
+    _ <- case cfgSocket of
+        Just sockPath -> void $ forkIO $ do
+            logf' "Internal API listening on {}" [sockPath]
+            resetSocket sockPath
+            sock <- socket AF_UNIX Stream 0
+            bind sock $ SockAddrUnix sockPath
+            listen sock maxListenQueue
+            Warp.runSettingsSocket Warp.defaultSettings sock $
+                NodeApi.app Nothing True nvar
+            close sock
+        Nothing       -> return ()
     registerAtExit $ do
         log' "Shutting down... (Interrupting this will cause the next startup to take longer)"
-        resetSocket $ T.unpack cfgSocketPath
+        case cfgSocket of
+            Just sockPath -> resetSocket sockPath
+            Nothing       -> return ()
         readTVarIO nvar >>= closeStorage . nodeStorage
     log' "Node started"
     withAtExit $ runNode nvar

@@ -25,34 +25,45 @@ import Constellation.Util.String (trimBoth)
 data Config = Config
     { cfgUrl             :: !Text
     , cfgPort            :: !Int
-    , cfgSocketPath      :: !Text
-    , cfgOtherNodeUrls   :: ![Text]
-    , cfgPublicKeyPaths  :: ![FilePath]
-    , cfgPrivateKeyPaths :: ![FilePath]
-    , cfgPasswordsPath   :: !FilePath
-    , cfgStoragePath     :: !String
+    , cfgSocket          :: !(Maybe FilePath)
+    , cfgOtherNodes      :: ![Text]
+    , cfgPublicKeys      :: ![FilePath]
+    , cfgPrivateKeys     :: ![FilePath]
+    , cfgPasswords       :: !(Maybe FilePath)
+    , cfgStorage         :: !String
     , cfgIpWhitelist     :: ![String]
     , cfgJustShowVersion :: !Bool
-    , cfgVerbose         :: !Bool
+    , cfgVerbose         :: !Bool  -- another level for debug?
     } deriving Show
 
 instance Default Config where
     def = Config
         { cfgUrl             = ""
         , cfgPort            = 0
-        , cfgSocketPath      = "constellation.ipc"
-        , cfgOtherNodeUrls   = []
-        , cfgPublicKeyPaths  = []
-        , cfgPrivateKeyPaths = []
-        , cfgPasswordsPath   = ""
-        , cfgStoragePath     = "storage"
+        , cfgSocket          = Nothing
+        , cfgOtherNodes      = []
+        , cfgPublicKeys      = []
+        , cfgPrivateKeys     = []
+        , cfgPasswords       = Nothing
+        , cfgStorage         = "storage"
         , cfgIpWhitelist     = []
         , cfgJustShowVersion = False
         , cfgVerbose         = False
         }
 
 instance FromJSON Config where
-    parseJSON (Object v) = undefined
+    parseJSON (Object v) = Config
+        <$> v .:? "url"         .!= ""
+        <*> v .:? "port"        .!= 0
+        <*> v .:? "socket"
+        <*> v .:? "otherNodes"  .!= []
+        <*> v .:? "publicKeys"  .!= []
+        <*> v .:? "privateKeys" .!= []
+        <*> v .:? "passwords"
+        <*> v .:? "storage"     .!= "storage"
+        <*> v .:? "ipWhitelist" .!= []
+        <*> pure False
+        <*> v .:? "verbose"     .!= False
     parseJSON _          = mzero
 
 options :: [OptDescr (Config -> Config)]
@@ -63,25 +74,25 @@ options =
     , Option [] ["port"] (OptArg (justDo setPort) "PORT")
       "Port to listen on for the external API"
 
-    , Option [] ["socket"] (OptArg (justDo setSocketPath) "FILE")
+    , Option [] ["socket"] (OptArg (justDo setSocket) "FILE")
       "Path to IPC socket file to create for internal API access"
 
-    , Option [] ["othernodeurls"] (OptArg (justDo setOtherNodeUrls) "URLs")
+    , Option [] ["otherNodes"] (OptArg (justDo setOtherNodes) "URLs")
       "Comma-separated list of other node URLs to connect to on startup (this list may be incomplete)"
 
-    , Option [] ["publickeys"] (OptArg (justDo setPublicKeyPaths) "FILE")
+    , Option [] ["publicKeys"] (OptArg (justDo setPublicKeys) "FILE")
       "Comma-separated list of paths to public keys to advertise"
 
-    , Option [] ["privatekeys"] (OptArg (justDo setPrivateKeyPaths) "FILE")
+    , Option [] ["privateKeys"] (OptArg (justDo setPrivateKeys) "FILE")
       "Comma-separated list of paths to corresponding private keys (these must be given in the same order as --publickeys)"
 
-    , Option [] ["password"] (OptArg (justDo setPasswordsPath) "FILE")
+    , Option [] ["password"] (OptArg (justDo setPasswords) "FILE")
       "A file containing the passwords for the specified --privatekeys, one per line, in the same order (if one key is not locked, add an empty line)"
 
-    , Option [] ["storage"] (OptArg (justDo setStoragePath) "FILE")
+    , Option [] ["storage"] (OptArg (justDo setStorage) "FILE")
       "Storage path to pass to the storage engine"
 
-    , Option [] ["ipwhitelist"] (OptArg (justDo setIpWhitelist) "IPv4s/IPv6s")
+    , Option [] ["ipWhitelist"] (OptArg (justDo setIpWhitelist) "IPv4s/IPv6s")
       "Comma-separated list of IPv4 and IPv6 addresses that may connect to this node's external API"
 
     , Option ['v'] ["verbose"] (NoArg setVerbose)
@@ -101,23 +112,23 @@ setUrl s c = c { cfgUrl = T.pack s }
 setPort :: String -> Config -> Config
 setPort s c = c { cfgPort = read s }
 
-setSocketPath :: String -> Config -> Config
-setSocketPath s c = c { cfgSocketPath = T.pack s }
+setSocket :: String -> Config -> Config
+setSocket s c = c { cfgSocket = Just s }
 
-setOtherNodeUrls :: String -> Config -> Config
-setOtherNodeUrls s c = c { cfgOtherNodeUrls = map (T.pack . trimBoth) (splitOn "," s) }
+setOtherNodes :: String -> Config -> Config
+setOtherNodes s c = c { cfgOtherNodes = map (T.pack . trimBoth) (splitOn "," s) }
 
-setPublicKeyPaths :: String -> Config -> Config
-setPublicKeyPaths s c = c { cfgPublicKeyPaths = map trimBoth (splitOn "," s) }
+setPublicKeys :: String -> Config -> Config
+setPublicKeys s c = c { cfgPublicKeys = map trimBoth (splitOn "," s) }
 
-setPrivateKeyPaths :: String -> Config -> Config
-setPrivateKeyPaths s c = c { cfgPrivateKeyPaths = map trimBoth (splitOn "," s) }
+setPrivateKeys :: String -> Config -> Config
+setPrivateKeys s c = c { cfgPrivateKeys = map trimBoth (splitOn "," s) }
 
-setPasswordsPath :: String -> Config -> Config
-setPasswordsPath s c = c { cfgPasswordsPath = s }
+setPasswords :: String -> Config -> Config
+setPasswords s c = c { cfgPasswords = Just s }
 
-setStoragePath :: String -> Config -> Config
-setStoragePath s c = c { cfgSocketPath = T.pack s }
+setStorage :: String -> Config -> Config
+setStorage s c = c { cfgStorage = s }
 
 setIpWhitelist :: String -> Config -> Config
 setIpWhitelist s c = c { cfgIpWhitelist = map trimBoth (splitOn "," s) }
