@@ -84,8 +84,7 @@ run cfg@Config{..} = do
     storage <- berkeleyDbStorage cfgStorage
     -- storage <- memoryStorage
     nvar    <- newTVarIO =<<
-        newNode crypt storage cfgUrl (map fst ks)
-        cfgOtherNodes
+        newNode crypt storage cfgUrl (map fst ks) cfgOtherNodes
     _ <- forkIO $ do
         let mwl = if null cfgIpWhitelist
                 then Nothing
