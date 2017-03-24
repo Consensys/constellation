@@ -73,7 +73,8 @@ run cfg@Config{..} = do
     when (cfgPort == 0) $
         errorL' "A listening port must be specified with 'port' in the configuration file or --port at runtime"
     let kps = zip3 cfgPublicKeys cfgPrivateKeys pwds
-    logf' "Constructing Enclave using keypairs {}" [show kps]
+    logf' "Constructing Enclave using keypairs {}"
+        [show $ zip cfgPublicKeys cfgPrivateKeys]
     ks <- mustLoadKeyPairs kps
     e  <- newEnclave' ks
     let crypt = Crypt
