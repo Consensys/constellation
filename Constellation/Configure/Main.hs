@@ -1,13 +1,12 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE Strict #-}
 module Constellation.Configure.Main where
 
 import ClassyPrelude
 import System.Console.Haskeline
-    (InputT, runInputT, defaultSettings, getPassword)
-import System.Environment (getArgs, getProgName)
-import Text.Printf (printf)
+    (InputT, runInputT, defaultSettings)
 
 defaultMain :: IO ()
 defaultMain = runInputT defaultSettings configure

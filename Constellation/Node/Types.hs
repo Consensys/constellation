@@ -1,6 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE Strict #-}
 module Constellation.Node.Types where
 
 import ClassyPrelude
@@ -13,16 +14,16 @@ import Constellation.Enclave.Payload (EncryptedPayload)
 import Constellation.Enclave.Types (PublicKey)
 
 data Node = Node
-    { nodePi                :: !PartyInfo
-    , nodeCrypt             :: !Crypt
-    , nodeStorage           :: !Storage
-    , nodeManager           :: !Manager
+    { nodePi      :: PartyInfo
+    , nodeCrypt   :: Crypt
+    , nodeStorage :: Storage
+    , nodeManager :: Manager
     }
 
 data PartyInfo = PartyInfo
-    { piUrl     :: !Text
-    , piRcpts   :: !(HM.HashMap PublicKey Text)
-    , piParties :: !(HS.HashSet Text)
+    { piUrl     :: Text
+    , piRcpts   :: HM.HashMap PublicKey Text
+    , piParties :: HS.HashSet Text
     } deriving (Show)
 
 instance Binary PartyInfo where
@@ -34,13 +35,13 @@ instance Binary PartyInfo where
         }
 
 data Crypt = Crypt
-    { encryptPayload :: !(ByteString -> PublicKey -> [PublicKey] -> IO (Either String EncryptedPayload))
-    , decryptPayload :: !(EncryptedPayload -> PublicKey -> IO (Either String ByteString))
+    { encryptPayload :: ByteString -> PublicKey -> [PublicKey] -> IO (Either String EncryptedPayload)
+    , decryptPayload :: EncryptedPayload -> PublicKey -> IO (Either String ByteString)
     }
 
 data Storage = Storage
-    { savePayload     :: !((EncryptedPayload, [PublicKey]) -> IO (Either String Text))
-    , loadPayload     :: !(Text -> IO (Either String (EncryptedPayload, [PublicKey])))
-    , traverseStorage :: !((Text -> (EncryptedPayload, [PublicKey]) -> IO Bool) -> IO ())
+    { savePayload     :: (EncryptedPayload, [PublicKey]) -> IO (Either String Text)
+    , loadPayload     :: Text -> IO (Either String (EncryptedPayload, [PublicKey]))
+    , traverseStorage :: (Text -> (EncryptedPayload, [PublicKey]) -> IO Bool) -> IO ()
     , closeStorage    :: IO ()
     }
