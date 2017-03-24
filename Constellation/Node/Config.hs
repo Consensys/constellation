@@ -1,6 +1,7 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE Strict #-}
 module Constellation.Node.Config where
 
 import ClassyPrelude
@@ -24,17 +25,17 @@ import Constellation.Util.Exception (trys)
 import Constellation.Util.String (trimBoth)
 
 data Config = Config
-    { cfgUrl             :: !Text
-    , cfgPort            :: !Int
-    , cfgSocket          :: !(Maybe FilePath)
-    , cfgOtherNodes      :: ![Text]
-    , cfgPublicKeys      :: ![FilePath]
-    , cfgPrivateKeys     :: ![FilePath]
-    , cfgPasswords       :: !(Maybe FilePath)
-    , cfgStorage         :: !String
-    , cfgIpWhitelist     :: ![String]
-    , cfgJustShowVersion :: !Bool
-    , cfgVerbosity       :: !Int
+    { cfgUrl             :: Text
+    , cfgPort            :: Int
+    , cfgSocket          :: Maybe FilePath
+    , cfgOtherNodes      :: [Text]
+    , cfgPublicKeys      :: [FilePath]
+    , cfgPrivateKeys     :: [FilePath]
+    , cfgPasswords       :: Maybe FilePath
+    , cfgStorage         :: String
+    , cfgIpWhitelist     :: [String]
+    , cfgJustShowVersion :: Bool
+    , cfgVerbosity       :: Int
     } deriving Show
 
 instance Default Config where

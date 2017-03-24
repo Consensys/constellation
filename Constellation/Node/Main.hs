@@ -1,6 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE Strict #-}
 module Constellation.Node.Main where
 
 import ClassyPrelude hiding (getArgs, log)

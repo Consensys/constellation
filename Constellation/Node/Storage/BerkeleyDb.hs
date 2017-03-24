@@ -1,6 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE Strict #-}
 module Constellation.Node.Storage.BerkeleyDb where
 
 import ClassyPrelude hiding (hash)

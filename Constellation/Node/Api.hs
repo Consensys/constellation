@@ -1,6 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE Strict #-}
 module Constellation.Node.Api where
 
 import ClassyPrelude hiding (log)
@@ -32,9 +33,9 @@ import Constellation.Util.Wai
     (ok, badRequest, unauthorized, internalServerError)
 
 data Send = Send
-    { sreqPayload :: !ByteString
-    , sreqFrom    :: !PublicKey
-    , sreqTo      :: ![PublicKey]
+    { sreqPayload :: ByteString
+    , sreqFrom    :: PublicKey
+    , sreqTo      :: [PublicKey]
     } deriving (Show)
 
 instance FromJSON Send where
@@ -45,7 +46,7 @@ instance FromJSON Send where
     parseJSON _          = mzero
 
 data SendResponse = SendResponse
-    { sresKey :: !Text
+    { sresKey :: Text
     } deriving (Show)
 
 instance ToJSON SendResponse where
@@ -53,8 +54,8 @@ instance ToJSON SendResponse where
         ["key" .= sresKey]
 
 data Receive = Receive
-    { rreqKey :: !Text
-    , rreqTo  :: !PublicKey
+    { rreqKey :: Text
+    , rreqTo  :: PublicKey
     } deriving (Show)
 
 instance FromJSON Receive where
@@ -64,7 +65,7 @@ instance FromJSON Receive where
     parseJSON _          = mzero
 
 data ReceiveResponse = ReceiveResponse
-    { rresPayload :: !ByteString
+    { rresPayload :: ByteString
     } deriving (Show)
 
 instance ToJSON ReceiveResponse where
