@@ -1,6 +1,7 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE Strict #-}
 module Constellation.Enclave.Keygen.Main where
 
 import ClassyPrelude hiding (getArgs, writeFile)

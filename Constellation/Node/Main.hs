@@ -1,12 +1,13 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE Strict #-}
 module Constellation.Node.Main where
 
 import ClassyPrelude hiding (log)
 import Control.Concurrent (forkIO)
 import Control.Logging
-    (LogLevel(LevelDebug, LevelWarn), setLogLevel, withStderrLogging, log')
+    (LogLevel(LevelWarn), setLogLevel, withStderrLogging, log')
 import Data.Text.Format (Shown(Shown))
 import GHC.Conc (getNumProcessors)
 import Network.Socket

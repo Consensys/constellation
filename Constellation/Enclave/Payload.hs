@@ -1,6 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE Strict #-}
 module Constellation.Enclave.Payload where
 
 import ClassyPrelude
@@ -11,11 +12,11 @@ import qualified Crypto.Saltine.Core.Box as Box
 import qualified Crypto.Saltine.Core.SecretBox as SBox
 
 data EncryptedPayload = EncryptedPayload
-    { eplSender    :: !Box.PublicKey
-    , eplCt        :: !ByteString
-    , eplNonce     :: !SBox.Nonce
-    , eplRcptBoxes :: ![ByteString]
-    , eplRcptNonce :: !Box.Nonce
+    { eplSender    :: Box.PublicKey
+    , eplCt        :: ByteString
+    , eplNonce     :: SBox.Nonce
+    , eplRcptBoxes :: [ByteString]
+    , eplRcptNonce :: Box.Nonce
     }
 
 instance Show EncryptedPayload where

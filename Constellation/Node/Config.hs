@@ -1,5 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE Strict #-}
 module Constellation.Node.Config where
 
 import ClassyPrelude
@@ -12,14 +13,14 @@ import qualified Data.Text.IO as TIO
 import Constellation.Util.Exception (trys)
 
 data Config = Config
-    { cfgUrl                    :: !Text
-    , cfgPort                   :: !Int
-    , cfgSocketPath             :: !Text
-    , cfgOtherNodeUrls          :: ![Text]
-    , cfgPublicKeyPath          :: !FilePath
-    , cfgPrivateKeyPath         :: !FilePath
-    , cfgStoragePath            :: !String
-    , cfgIpWhitelist            :: ![String]
+    { cfgUrl                    :: Text
+    , cfgPort                   :: Int
+    , cfgSocketPath             :: Text
+    , cfgOtherNodeUrls          :: [Text]
+    , cfgPublicKeyPath          :: FilePath
+    , cfgPrivateKeyPath         :: FilePath
+    , cfgStoragePath            :: String
+    , cfgIpWhitelist            :: [String]
     } deriving Show
 
 instance FromJSON Config where

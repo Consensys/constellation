@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE Strict #-}
 module Constellation.Enclave.Payload.Test where
 
-import ClassyPrelude
 import Test.Tasty (TestTree, testGroup)
 
 tests :: TestTree
