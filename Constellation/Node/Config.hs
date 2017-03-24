@@ -5,16 +5,14 @@
 module Constellation.Node.Config where
 
 import ClassyPrelude
-import Control.Logging (errorL')
 import Data.Aeson
-    (FromJSON(parseJSON), Value(Object), (.:), (.:?), (.!=), toJSON, fromJSON)
+    (FromJSON(parseJSON), Value(Object), (.:?), (.!=), toJSON, fromJSON)
 import Data.Default (Default, def)
 import Data.List.Split (splitOn)
 import System.Console.GetOpt
     ( OptDescr(Option), ArgOrder(Permute), ArgDescr(NoArg, OptArg)
     , getOpt, usageInfo
     )
-import System.Exit (exitSuccess)
 import Text.Read (read)
 import Text.Toml (parseTomlDoc)
 import qualified Data.Aeson as AE
@@ -185,7 +183,7 @@ extractConfig argv = case getOpt Permute options argv of
     (_, _, errs) -> errorOut (concat errs)
 
 errorOut :: String -> IO a
-errorOut s = ioError (userError $ s ++ ". " ++ usageInfo header options) >> undefined
+errorOut s = ioError (userError $ s ++ ". " ++ usageInfo header options) >> error ""
   where
     header = "Usage: constellation-node [OPTION...] [config file containing options]\n(If a configuration file is specified, any command line options will take precedence.)"
 

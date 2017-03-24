@@ -19,7 +19,6 @@ import Network.Socket
 import System.Directory (doesFileExist, removeFile)
 import System.Environment (getArgs)
 import qualified Data.Text as T
-import qualified Data.Text.Format as TF
 import qualified Network.Wai.Handler.Warp as Warp
 
 import Constellation.Enclave
@@ -35,7 +34,7 @@ import Constellation.Node.Types
     )
 import Constellation.Node.Config (Config(..), extractConfig)
 import Constellation.Util.AtExit (registerAtExit, withAtExit)
-import Constellation.Util.Logging (debugf', logf', warnf')
+import Constellation.Util.Logging (debugf', logf')
 import qualified Constellation.Node.Api as NodeApi
 
 version :: Text
