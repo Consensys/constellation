@@ -39,6 +39,7 @@ library
                        Constellation.Util.Logging
                        Constellation.Util.Memory
                        Constellation.Util.Network
+                       Constellation.Util.String
                        Constellation.Util.Text
                        Constellation.Util.Wai
   ghc-options:         -Wall
@@ -74,6 +75,7 @@ library
                      , raw-strings-qq >= 1.1
                      -- , resource-pool
                      , saltine >= 0.0.0.4
+                     , split >= 0.2.3.1
                      -- , sqlite-simple
                      , text >= 1.2.2.1
                      , text-format >= 0.3.1.1
@@ -110,6 +112,7 @@ test-suite constellation-test
                        Constellation.Util.Logging.Test
                        Constellation.Util.Memory.Test
                        Constellation.Util.Network.Test
+                       Constellation.Util.String.Test
                        Constellation.Util.Text.Test
                        Constellation.Util.Wai.Test
   main-is:             Main.hs

@@ -29,6 +29,7 @@ import qualified Constellation.Util.Exception.Test as UtilException
 import qualified Constellation.Util.Lockable.Test as UtilLockable
 import qualified Constellation.Util.Memory.Test as UtilMemory
 import qualified Constellation.Util.Network.Test as UtilNetwork
+import qualified Constellation.Util.String.Test as UtilString
 import qualified Constellation.Util.Text.Test as UtilText
 import qualified Constellation.Util.Wai.Test as UtilWai
 
@@ -53,6 +54,7 @@ tests = testGroup ""
     , UtilLockable.tests
     , UtilMemory.tests
     , UtilNetwork.tests
+    , UtilString.tests
     , UtilText.tests
     , UtilWai.tests
     ]

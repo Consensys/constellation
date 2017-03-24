@@ -151,8 +151,8 @@ lock pwd b = do
 deriveKey :: ArgonSalt -> ArgonOptions -> String -> ByteString
 deriveKey (ArgonSalt asalt) (ArgonOptions hopts) pwd =
     case hash hopts (TE.encodeUtf8 $ T.pack pwd) asalt 32 of
-      CryptoPassed a -> a
-      CryptoFailed e -> error $ "deriveKey failed: " ++ show e
+        CryptoPassed a -> a
+        CryptoFailed e -> error $ "deriveKey failed: " ++ show e
 
 unlock :: String -> Lockable -> Either String ByteString
 unlock _   (Unlocked b)                                  = Right b
@@ -174,6 +174,4 @@ promptingUnlock locked       = runInputT defaultSettings prompt
             Just ""  -> prompt
             Just pwd -> case unlock pwd locked of
                 Left _  -> putStrLn "Invalid password. Try again." >> prompt
-                Right b -> do
-                  putStrLn "Unlocked"
-                  return $ Right b
+                Right b -> return $ Right b
