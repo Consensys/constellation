@@ -48,4 +48,4 @@ for an example of how to use Constellation. More detailed documentation coming s
 
 ## Configuration File Format
 
-See [sample.conf](sample.conf)
+See [sample.conf](sample.conf).
