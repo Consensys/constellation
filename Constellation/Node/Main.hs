@@ -38,7 +38,7 @@ import Constellation.Util.Logging (debugf', logf', warnf')
 import qualified Constellation.Node.Api as NodeApi
 
 version :: Text
-version = "0.1"
+version = "0.0.2-dev"
 
 defaultMain :: IO ()
 defaultMain = do
