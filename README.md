@@ -40,41 +40,12 @@ Constellation binaries for most major platforms can be downloaded [here](https:/
 
 ## Running
 
-  1. Run `constellation-node <path to config file>`
+  1. Run `constellation-node <path to config file>` or specify configuration
+     variables as command-line options (see `constellation-node --help`)
 
 For now, please refer to the [Constellation client Go library](https://github.com/jpmorganchase/quorum/blob/master/private/constellation/node.go)
 for an example of how to use Constellation. More detailed documentation coming soon!
 
 ## Configuration File Format
 
-    # Externally accessible URL for this node (this is what's advertised)
-    url = "http://127.0.0.1:9001/"
-
-    # Port to listen on
-    port = 9001
-
-    # Optional IP whitelist for the external API. If unspecified/empty,
-    # connections from all sources will be allowed (but the private API remains
-    # accessible only via the IPC socket below.) To allow connections from
-    # localhost when a whitelist is defined, e.g. when running multiple
-    # Constellation nodes on the same machine, add "127.0.0.1" and "::1" to
-    # this list.
-    ipWhitelist = ["10.0.0.1", "2001:0db8:85a3:0000:0000:8a2e:0370:7334"]
-
-    # Socket file to use for IPC
-    socketPath = "tm1.ipc"
-
-    # Initial (not necessarily complete) list of other nodes in the network.
-    # Constellation will automatically connect to other nodes not in this list
-    # that are advertised by the nodes below, thus these can be considered the
-    # "boot nodes."
-    otherNodeUrls = ["http://127.0.0.1:9000/"]
-
-    # This node's public key
-    publicKeyPath = "tm1.pub"
-
-    # This node's private key
-    privateKeyPath = "tm1.key"
-
-    # Where to store payloads and related information
-    storagePath = "data/payloads"
+See [sample.conf](sample.conf)
