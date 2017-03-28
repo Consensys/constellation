@@ -60,18 +60,12 @@ encrypt' :: ByteString
          -> Box.PublicKey
          -> [Box.CombinedKey]
          -> IO EncryptedPayload
-encrypt' pl sender cks = do
-    (mk, nonce, ct) <- sboxSeal pl
-    rcptNonce       <- Box.newNonce
-    let rcptBoxes = map (\ck -> Box.boxAfterNM ck rcptNonce emk) cks
-        emk       = S.encode mk
-    return EncryptedPayload
-        { eplSender    = sender
-        , eplCt        = ct
-        , eplNonce     = nonce
-        , eplRcptBoxes = rcptBoxes
-        , eplRcptNonce = rcptNonce
-        }
+encrypt' pl eplSender cks = do
+    (mk, eplNonce, eplCt) <- sboxSeal pl
+    eplRcptNonce          <- Box.newNonce
+    let eplRcptBoxes = map (\ck -> Box.boxAfterNM ck eplRcptNonce emk) cks
+        emk          = S.encode mk
+    return EncryptedPayload{..}
 
 sboxSeal :: ByteString -> IO (SBox.Key, SBox.Nonce, ByteString)
 sboxSeal pt = do
