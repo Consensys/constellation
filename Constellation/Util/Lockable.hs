@@ -101,27 +101,21 @@ instance ToJSON ArgonOptions where
 
 instance FromJSON ArgonOptions where
     parseJSON (AE.Object v) = do
-        iter   <- v .:  "iterations"
-        mem    <- v .:  "memory"
-        par    <- v .:  "parallelism"
-        varStr <- v .:  "variant"
-        verStr <- v .:? "version"
-        var    <- case varStr :: Text of
+        iterations  <- v .:  "iterations"
+        memory      <- v .:  "memory"
+        parallelism <- v .:  "parallelism"
+        varStr      <- v .:  "variant"
+        verStr      <- v .:? "version"
+        variant     <- case varStr :: Text of
             "i"  -> return Argon2i
             "d"  -> return Argon2d
             "id" -> return Argon2id
-            _   -> fail "Unrecognized Argon2 variant"
-        ver    <- case verStr :: Maybe Text of
+            _    -> fail "Unrecognized Argon2 variant"
+        version     <- case verStr :: Maybe Text of
             Just "1.3" -> return Version13
             Just "1.0" -> return Version10
             _          -> return Version13
-        return $ ArgonOptions Options
-            { iterations  = iter
-            , memory      = mem
-            , parallelism = par
-            , variant     = var
-            , version     = ver
-            }
+        return $ ArgonOptions Options{..}
     parseJSON _             = fail "ArgonOptions must be an Aeson Object"
 
 newtype SBoxNonce = SBoxNonce SBox.Nonce
