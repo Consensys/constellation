@@ -8,9 +8,10 @@ module Constellation.Enclave.Key where
 import Prelude (putStrLn)
 import ClassyPrelude hiding (hash, putStrLn)
 import Control.Monad.Trans.Either (EitherT(EitherT), runEitherT)
-import qualified Data.Aeson as AE
 import qualified Crypto.Saltine.Class as S
 import qualified Crypto.Saltine.Core.Box as Box
+import qualified Data.Aeson as AE
+import qualified Data.Text as T
 
 import Constellation.Enclave.Types (PublicKey(PublicKey), mkPublicKey)
 import Constellation.Util.ByteString (b64TextDecodeBs)
@@ -25,7 +26,7 @@ newKeyPair = do
 loadKeyPair :: (FilePath, FilePath, Maybe String)
             -> IO (Either String (PublicKey, Box.SecretKey))
 loadKeyPair (pubPath, privPath, mpwd) = runEitherT $ do
-    pubBs  <- EitherT $ b64TextDecodeBs <$> readFileUtf8 pubPath
+    pubBs  <- EitherT $ b64TextDecodeBs . T.strip <$> readFileUtf8 pubPath
     pub    <- maybeToEitherT "loadKeyPair: Failed to mkPublicKey"
               (mkPublicKey pubBs)
     locked <- EitherT $ AE.eitherDecode' . fromStrict <$> readFile privPath
