@@ -26,7 +26,7 @@ RUN chmod 755 /usr/local/bin/stack
 # Compile constellation
 ADD ./ /usr/local/src/constellation
 WORKDIR /usr/local/src/constellation
-RUN stack install --test --ghc-options '-optl-static -fPIC'
+RUN stack install --local-bin-path /usr/local/bin --test --ghc-options '-optl-static -fPIC'
 
 # Optional: Compress with upx for a smaller file size
 # ADD https://github.com/lalyos/docker-upx/releases/download/v3.91/upx /usr/local/bin/upx
@@ -38,5 +38,14 @@ RUN stack install --test --ghc-options '-optl-static -fPIC'
 # Get the image ID: % docker images
 # Start a container: % docker run -t -i <imageid> /bin/bash
 # Get the container ID: % docker ps
-# % docker cp <containerid>:/root/.local/bin/constellation-node .
-# % docker cp <containerid>:/root/.local/bin/constellation-enclave-keygen .
+# % docker cp <containerid>:/usr/local/bin/constellation-node .
+# % docker cp <containerid>:/usr/local/bin/constellation-enclave-keygen .
+#
+# Keep the image, restart it and check out constellation from Github to quickly
+# recompile later on (without recompiling dependencies):
+# % cd /usr/local/src && rm -rf constellation
+# % git clone git@github.com:jpmorganchase/constellation.git && cd constellation
+# (or use 'docker cp' to copy your local repository.)
+#
+# Just remember to run stack with these options:
+# % stack install --local-bin-path /usr/local/bin --test --ghc-options '-optl-static -fPIC'
