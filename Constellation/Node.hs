@@ -11,6 +11,7 @@ import Network.HTTP.Conduit ( RequestBody(RequestBodyLBS)
                             , parseRequest, httpLbs, method, requestBody
                             , responseBody
                             )
+import System.Random (StdGen, newStdGen, randomR)
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.HashMap.Strict as HM
 import qualified Data.HashSet as HS
@@ -22,6 +23,7 @@ import Constellation.Enclave.Payload
 import Constellation.Enclave.Types (PublicKey(PublicKey, unPublicKey))
 import Constellation.Node.Types
 import Constellation.Util.Exception (trys)
+import Constellation.Util.Logging (logf)
 
 newNode :: Crypt
         -> Storage
@@ -37,7 +39,7 @@ newNode crypt storage url rcpts parties = do
         { nodePi                = PartyInfo
               { piUrl     = url
               , piRcpts   = HM.fromList $ map (\pub -> (pub, url)) rcpts
-              , piParties = HS.fromList parties
+              , piParties = HS.fromList (url : parties)
               }
         , nodeCrypt             = crypt
         , nodeStorage           = storage
@@ -45,24 +47,47 @@ newNode crypt storage url rcpts parties = do
         }
 
 runNode :: TVar Node -> IO ()
-runNode = refreshLoop
+runNode nvar = do
+    -- Aggressive synchronization while other nodes may be coming up (in an
+    -- unknown order.)
+    -- TODO: Smarter synchronization strategies
+    let refreshThenDelay delay = nodeRefresh nvar >> threadDelay delay
+    -- Every second for the first five seconds
+    replicateM_ 5 (refreshThenDelay $ seconds 1)
+    -- Add a small delay to ease barrage when spinning up many nodes at once
+    g <- newStdGen
+    let (jitter, ng) = randomR (1, 10) g
+    threadDelay $ seconds jitter
+    -- Every ten seconds for the next minute
+    replicateM_ 6 (refreshThenDelay $ seconds 10)
+    -- Every thirty seconds for the next two minutes
+    replicateM_ 4 (refreshThenDelay $ seconds 30)
+    -- Switch to normal synchronization
+    refreshLoop ng nvar
 
-refreshLoop :: TVar Node -> IO ()
-refreshLoop nvar = do
+seconds :: Int -> Int
+seconds n = n * 1000 * 1000
+
+refreshLoop :: StdGen -> TVar Node -> IO ()
+refreshLoop g nvar = do
     nodeRefresh nvar
-    threadDelay (5 * 60 * 1000 * 1000) >> refreshLoop nvar
+    -- Wait approximately five minutes
+    let (jitteredDelay, ng) = randomR (280, 320) g
+    threadDelay (seconds jitteredDelay) >> refreshLoop ng nvar
 
 nodeRefresh :: TVar Node -> IO ()
 nodeRefresh nvar = do
     node <- readTVarIO nvar
+    let PartyInfo{..} = nodePi node
     epis <- mapM
         (getRemotePartyInfo nvar)
-        (HS.toList $ piParties $ nodePi node)
+        (HS.toList $ HS.delete piUrl piParties)
     let pis = rights epis
     atomically $ mergePartyInfos nvar pis
 
 getRemotePartyInfo :: TVar Node -> Text -> IO (Either String PartyInfo)
 getRemotePartyInfo nvar url = trys $ do
+    logf "Starting synchronization with {}" [url]
     Node{..} <- atomically $ readTVar nvar
     req      <- parseRequest $ T.unpack url ++ "partyinfo"
     let req' = req
@@ -70,6 +95,7 @@ getRemotePartyInfo nvar url = trys $ do
             , requestBody = RequestBodyLBS $ encode nodePi
             }
     res <- httpLbs req' nodeManager
+    logf "Finished synchronization with {}" [url]
     return $ decode $ responseBody res
 
 mergePartyInfos :: TVar Node -> [PartyInfo] -> STM ()
