@@ -42,6 +42,7 @@ data Crypt = Crypt
 data Storage = Storage
     { savePayload     :: (EncryptedPayload, [PublicKey]) -> IO (Either String Text)
     , loadPayload     :: Text -> IO (Either String (EncryptedPayload, [PublicKey]))
+    , deletePayload   :: Text -> IO ()
     , traverseStorage :: (Text -> (EncryptedPayload, [PublicKey]) -> IO Bool) -> IO ()
     , closeStorage    :: IO ()
     }

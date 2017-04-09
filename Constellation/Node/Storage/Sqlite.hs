@@ -22,7 +22,7 @@ import Constellation.Enclave.Payload
     (EncryptedPayload(EncryptedPayload, eplCt))
 import Constellation.Enclave.Types (PublicKey)
 import Constellation.Node.Types
-    (Storage(Storage, savePayload, loadPayload, traverseStorage))
+    (Storage(Storage, savePayload, loadPayload, deletePayload, traverseStorage))
 import Constellation.Util.Memory (byteArrayToByteString)
 
 createStmts :: [Query]
@@ -52,6 +52,7 @@ sqliteStorage fpath = do
     return Storage
         { savePayload     = \epl -> withResource p $ \c -> save c epl
         , loadPayload     = \k   -> withResource p $ \c -> load c k
+        , deletePayload   = \k   -> withResource p $ \c -> delete c k
         , traverseStorage = \f   -> withResource p $ \c -> trav c f
         }
 
@@ -74,6 +75,13 @@ load c k = do
         [Only b] -> Right $ decode $ BL.fromStrict b
         []       -> Left "load: No payload found"
         _        -> Left "load: More than one payload found"
+
+delete :: Connection -> Text -> IO ()
+delete c k = do
+    execute c
+        "DELETE FROM payload WHERE payloadKey = ?"
+        (Only k)
+    return ()
 
 trav :: Connection -> (Text -> (EncryptedPayload, [PublicKey]) -> IO Bool) -> IO ()
 trav c f = void $ fold_ c

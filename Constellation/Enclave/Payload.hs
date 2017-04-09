@@ -17,7 +17,7 @@ data EncryptedPayload = EncryptedPayload
     , eplNonce     :: SBox.Nonce
     , eplRcptBoxes :: [ByteString]
     , eplRcptNonce :: Box.Nonce
-    }
+    } deriving Eq
 
 instance Show EncryptedPayload where
     show = show . encodeable
