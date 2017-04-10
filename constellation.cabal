@@ -102,6 +102,7 @@ test-suite constellation-test
                        -- Constellation.Node.Storage.LevelDb.Test
                        Constellation.Node.Storage.Memory.Test
                        -- Constellation.Node.Storage.Sqlite.Test
+                       Constellation.Node.Storage.TestUtil
                        Constellation.Node.Types.Test
                        Constellation.TestUtil
                        Constellation.Util.AtExit.Test
