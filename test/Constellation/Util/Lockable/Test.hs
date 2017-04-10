@@ -1,6 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE Strict #-}
+{-# LANGUAGE StrictData #-}
 module Constellation.Util.Lockable.Test where
 
 import ClassyPrelude

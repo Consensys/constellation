@@ -1,5 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE Strict #-}
+{-# LANGUAGE StrictData #-}
 module Constellation.Enclave.Types.Test where
 
 import Test.Tasty (TestTree, testGroup)

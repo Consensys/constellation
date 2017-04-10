@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE Strict #-}
+{-# LANGUAGE StrictData #-}
 module Constellation.Configure.Main where
 
 import ClassyPrelude

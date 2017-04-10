@@ -1,5 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE Strict #-}
+{-# LANGUAGE StrictData #-}
 module Constellation.Node.Storage.Memory.Test where
 
 import ClassyPrelude

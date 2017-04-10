@@ -1,5 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE Strict #-}
+{-# LANGUAGE StrictData #-}
 module Constellation.Node.Storage.Sqlite.Test where
 
 import Test.Tasty (TestTree, testGroup)

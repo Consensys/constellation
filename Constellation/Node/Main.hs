@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE Strict #-}
+{-# LANGUAGE StrictData #-}
 module Constellation.Node.Main where
 
 import ClassyPrelude hiding (getArgs, log)
@@ -38,7 +38,7 @@ import Constellation.Util.Logging (debugf', logf')
 import qualified Constellation.Node.Api as NodeApi
 
 version :: Text
-version = "0.0.2-dev"
+version = "0.1.0"
 
 defaultMain :: IO ()
 defaultMain = do
