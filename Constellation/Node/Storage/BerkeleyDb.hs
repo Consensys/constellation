@@ -4,7 +4,7 @@
 {-# LANGUAGE StrictData #-}
 module Constellation.Node.Storage.BerkeleyDb where
 
-import ClassyPrelude hiding (hash)
+import ClassyPrelude hiding (delete, hash)
 import Control.Logging (warn, warnS)
 import Crypto.Hash (Digest, SHA3_512, hash)
 import Data.Binary (encode, decode)
@@ -19,7 +19,8 @@ import Constellation.Enclave.Payload
     (EncryptedPayload(EncryptedPayload, eplCt))
 import Constellation.Enclave.Types (PublicKey)
 import Constellation.Node.Types
-    (Storage(Storage, savePayload, loadPayload, traverseStorage, closeStorage))
+    (Storage(Storage, savePayload, loadPayload, deletePayload,
+             traverseStorage, closeStorage))
 import Constellation.Util.Memory (byteArrayToByteString)
 
 berkeleyDbStorage :: FilePath -> IO Storage
@@ -53,6 +54,7 @@ berkeleyDbStorage fpath = do
     return Storage
         { savePayload     = \epl -> rtx $ \tx -> save db (Just tx) epl
         , loadPayload     = load db Nothing
+        , deletePayload   = delete db Nothing
         , traverseStorage = trav db Nothing
         , closeStorage    = do
               db_close [] db
@@ -117,6 +119,12 @@ load db mtx k = do
     return $ case mv of
         Nothing -> Left "Key not found in BerkeleyDb payload.db"
         Just v  -> Right $ decode $ BL.fromStrict v
+
+delete :: Db
+     -> Maybe DbTxn
+     -> Text
+     -> IO ()
+delete db mtx k = void $ db_del [] db mtx (TE.encodeUtf8 k)
 
 trav :: Db
      -> Maybe DbTxn

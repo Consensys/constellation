@@ -18,6 +18,7 @@ import qualified Constellation.Node.Test as Node
 import qualified Constellation.Node.Api.Test as NodeApi
 import qualified Constellation.Node.Config.Test as NodeConfig
 import qualified Constellation.Node.Main.Test as NodeMain
+import qualified Constellation.Node.Storage.BerkeleyDb.Test as NodeStorageBerkeley
 -- import qualified Constellation.Node.Storage.LevelDb.Test as NodeStorageLevelDb
 import qualified Constellation.Node.Storage.Memory.Test as NodeStorageMemory
 import qualified Constellation.Node.Storage.Sqlite.Test as NodeStorageSqlite
@@ -43,6 +44,7 @@ tests = testGroup ""
     , NodeApi.tests
     , NodeConfig.tests
     , NodeMain.tests
+    , NodeStorageBerkeley.tests
     -- , NodeStorageLevelDb.tests
     , NodeStorageMemory.tests
     , NodeStorageSqlite.tests

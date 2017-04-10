@@ -4,7 +4,7 @@
 {-# LANGUAGE StrictData #-}
 module Constellation.Node.Storage.Memory where
 
-import ClassyPrelude hiding (hash)
+import ClassyPrelude hiding (delete, hash)
 import Crypto.Hash (Digest, SHA3_512, hash)
 import qualified Data.ByteString.Base64 as B64
 import qualified Data.HashMap.Strict as HM
@@ -14,7 +14,8 @@ import Constellation.Enclave.Payload
     (EncryptedPayload(EncryptedPayload, eplCt))
 import Constellation.Enclave.Types (PublicKey)
 import Constellation.Node.Types
-    (Storage(Storage, savePayload, loadPayload, traverseStorage, closeStorage))
+    (Storage(Storage, savePayload, loadPayload, deletePayload,
+             traverseStorage, closeStorage))
 import Constellation.Util.Memory (byteArrayToByteString)
 
 type Db = TVar (HM.HashMap Text (EncryptedPayload, [PublicKey]))
@@ -25,6 +26,7 @@ memoryStorage = do
     return Storage
         { savePayload     = save mvar
         , loadPayload     = load mvar
+        , deletePayload   = delete mvar
         , traverseStorage = trav mvar
         , closeStorage    = return ()
         }
@@ -43,6 +45,9 @@ load mvar k = atomically $ do
     return $ case HM.lookup k m of
         Nothing -> Left "Key not found in memory database"
         Just v  -> Right v
+
+delete :: Db -> Text -> IO ()
+delete mvar k = atomically $ void $ modifyTVar mvar (HM.delete k)
 
 trav :: Db -> (Text -> (EncryptedPayload, [PublicKey]) -> IO Bool) -> IO ()
 trav mvar f = atomically (readTVar mvar) >>= loop . HM.toList
