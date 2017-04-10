@@ -47,8 +47,7 @@ load mvar k = atomically $ do
         Just v  -> Right v
 
 delete :: Db -> Text -> IO ()
-delete mvar k = atomically $ do
-    modifyTVar mvar (HM.delete k) >> return ()
+delete mvar k = atomically $ void $ modifyTVar mvar (HM.delete k)
 
 trav :: Db -> (Text -> (EncryptedPayload, [PublicKey]) -> IO Bool) -> IO ()
 trav mvar f = atomically (readTVar mvar) >>= loop . HM.toList

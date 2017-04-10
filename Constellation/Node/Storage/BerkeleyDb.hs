@@ -124,9 +124,7 @@ delete :: Db
      -> Maybe DbTxn
      -> Text
      -> IO ()
-delete db mtx k = do
-    db_del [] db mtx (TE.encodeUtf8 k) >>
-      return ()
+delete db mtx k = void $ db_del [] db mtx (TE.encodeUtf8 k)
 
 trav :: Db
      -> Maybe DbTxn

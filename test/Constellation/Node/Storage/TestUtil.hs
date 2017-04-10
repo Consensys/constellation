@@ -1,10 +1,10 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE Strict #-}
+{-# LANGUAGE StrictData #-}
 module Constellation.Node.Storage.TestUtil where
 
 import ClassyPrelude
 import Test.Tasty.HUnit ((@?), (@?=), Assertion)
-import qualified Data.ByteString.Char8 as C
+import qualified Data.ByteString.Char8 as BC
 
 import Constellation.Enclave.Key (newKeyPair)
 import Constellation.Enclave.Payload (encrypt)
@@ -19,7 +19,7 @@ testStorage storage testName = \step -> do
         (pub2, _) <- newKeyPair
         let boxPub1 = unPublicKey pub1
         let boxPub2 = unPublicKey pub2
-        epl <- encrypt (C.pack "payload") boxPub1 boxPriv1 [boxPub2]
+        epl <- encrypt (BC.pack "payload") boxPub1 boxPriv1 [boxPub2]
         let kv = (epl, [pub2])
         ek <- savePayload storage kv
         key <- case ek of

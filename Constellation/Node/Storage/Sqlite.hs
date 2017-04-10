@@ -77,11 +77,10 @@ load c k = do
         _        -> Left "load: More than one payload found"
 
 delete :: Connection -> Text -> IO ()
-delete c k = do
+delete c k = void $
     execute c
         "DELETE FROM payload WHERE payloadKey = ?"
         (Only k)
-    return ()
 
 trav :: Connection -> (Text -> (EncryptedPayload, [PublicKey]) -> IO Bool) -> IO ()
 trav c f = void $ fold_ c
