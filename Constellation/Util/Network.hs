@@ -4,11 +4,18 @@
 module Constellation.Util.Network where
 
 import ClassyPrelude
+import Network.HTTP.Types (HeaderName)
 import Network.Socket ( Family(AF_INET), SocketType(Stream)
                       , SockAddr(SockAddrInet)
                       , aNY_PORT, iNADDR_ANY
                       , socket, socketPort, bind, close
                       )
+
+hFrom :: HeaderName
+hFrom = "from"
+
+hTo :: HeaderName
+hTo = "to"
 
 getUnusedPort :: IO Int
 getUnusedPort = do
@@ -17,3 +24,4 @@ getUnusedPort = do
     port <- socketPort sock
     close sock
     return $ fromIntegral port
+

@@ -3,19 +3,31 @@
 {-# LANGUAGE StrictData #-}
 module Constellation.Node.Api.Test where
 
-import ClassyPrelude
+import ClassyPrelude hiding (encodeUtf8, pack)
 import Control.Concurrent (forkIO)
+import Data.ByteString.Char8 (pack)
+import Data.Maybe (fromJust)
 import Data.IP (toHostAddress, toHostAddress6)
+import Data.Text.Encoding (encodeUtf8)
 import Network.Socket
     (SockAddr(SockAddrInet, SockAddrInet6, SockAddrUnix, SockAddrCan))
+import Network.HTTP.Types
+    (Header, HeaderName, RequestHeaders)
+import Network.HTTP.Types.Header
+    (hContentLength)
 import System.IO.Temp (withSystemTempDirectory)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit ((@?=), testCase, testCaseSteps)
 import Text.Read (read)
+import qualified Data.ByteString.Lazy.Char8 as BLC
 import qualified Network.Wai.Handler.Warp as Warp
 
+import Constellation.Enclave.Types (PublicKey, mkPublicKey)
 import Constellation.Node (nodeRefresh)
+import Constellation.Node.Api (Send(..))
 import Constellation.Node.Types (Node(nodeStorage), Storage(closeStorage))
+import Constellation.Util.ByteString (mustB64TextDecodeBs)
+import Constellation.Util.Network (hFrom, hTo)
 import qualified Constellation.Node.Api as NodeApi
 
 import Constellation.TestUtil (setupTestNode, link, testSendPayload)
@@ -24,6 +36,12 @@ tests :: TestTree
 tests = testGroup "Constellation.Node.Api"
     [ testWhitelist
     , testSendAndReceivePayload
+    , testGetHeader
+    , testGetHeaderInvalid
+    , testDecodePayload
+    , testMustDecodeB64PublicKey
+    , testDecodePublicKeys
+    , testDecodeSendRaw
     ]
 
 testWhitelist :: TestTree
@@ -79,3 +97,72 @@ testSendAndReceivePayload = testCaseSteps "sendAndReceivePayload" $ \step ->
         killThread tid3
         nodes <- atomically $ mapM readTVar [node1Var, node2Var, node3Var]
         mapM_ (closeStorage . nodeStorage) nodes
+
+header1 :: Header
+header1 = ("h1" :: HeaderName, pack "payload1")
+
+header2 :: Header
+header2 = ("h2" :: HeaderName, pack "payload2")
+
+headers :: RequestHeaders
+headers = [header1, header2]
+
+testGetHeader :: TestTree
+testGetHeader = testCase "getHeader" $
+    NodeApi.getHeader ("h1" :: HeaderName) headers @?= Just header1
+
+testGetHeaderInvalid :: TestTree
+testGetHeaderInvalid = testCase "getHeaderInvalid" $
+    NodeApi.getHeader ("invalid" :: HeaderName) headers @?= Nothing
+
+pl :: String
+pl = "payload"
+
+pll :: ByteString
+pll = (pack . show . length) pl
+
+testDecodePayload :: TestTree
+testDecodePayload  = testCase "readPayload" $
+    NodeApi.decodePayload pll (BLC.pack $ pl ++ " ") @?= pack pl
+
+pk1t :: Text
+pk1t = "BULeR8JyUWhiuuCMU/HLA0Q5pzkYT+cHII3ZKBey3Bo="
+
+pk1bs :: ByteString
+pk1bs = encodeUtf8 pk1t
+
+pk1 :: PublicKey
+pk1 = mustB64TextMkPublicKey pk1t
+
+pk2t :: Text
+pk2t = "QfeDAys9MPDs2XHExtc84jKGHxZg/aj52DTh0vtA3Xc="
+
+pk2bs :: ByteString
+pk2bs = encodeUtf8 pk2t
+
+pk2 :: PublicKey
+pk2 = mustB64TextMkPublicKey pk2t
+
+mustB64TextMkPublicKey :: Text -> PublicKey
+mustB64TextMkPublicKey = fromJust . mkPublicKey . mustB64TextDecodeBs
+
+testMustDecodeB64PublicKey :: TestTree
+testMustDecodeB64PublicKey = testCase "mustDecodeB64PublicKey" $
+    NodeApi.mustDecodeB64PublicKey pk1bs @?= pk1
+
+testDecodePublicKeys :: TestTree
+testDecodePublicKeys = testCase "decodePublicKeys" $
+    NodeApi.decodePublicKeys (encodeUtf8 $ pk1t ++ "," ++ pk2t) @?= [pk1, pk2]
+
+testDecodeSendRaw :: TestTree
+testDecodeSendRaw = testCase "decodeSendRaw" $
+    (NodeApi.decodeSendRaw
+         (BLC.pack pl)
+         [(hContentLength, pll), (hFrom, pk1bs), (hTo, pk2bs)]
+    ) @?=
+    (Right $ NodeApi.Send
+        { sreqPayload = pack pl
+        , sreqFrom    = pk1
+        , sreqTo      = [pk2]
+        }
+    )
