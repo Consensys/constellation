@@ -4,7 +4,7 @@
 {-# LANGUAGE StrictData #-}
 module Constellation.Node.Api where
 
-import ClassyPrelude hiding (log, pack, unpack)
+import ClassyPrelude hiding (delete, log, pack, unpack)
 import Control.Monad (void)
 import Data.Aeson
     (FromJSON(parseJSON), ToJSON(toJSON), Value(Object), (.:), (.=), object)
@@ -83,6 +83,18 @@ instance ToJSON ReceiveResponse where
         [ "payload" .= TE.decodeUtf8 (B64.encode rresPayload)
         ]
 
+data Delete = Delete
+    { dreqKey :: Text
+    } deriving (Show)
+
+instance FromJSON Delete where
+    parseJSON (Object v) = Delete
+        <$> v .: "key"
+    parseJSON _          = mzero
+
+data DeleteResponse = DeleteResponse
+    deriving (Show)
+
 data Resend = ResendIndividual PublicKey Text
             | ResendAll PublicKey
             deriving (Show)
@@ -105,6 +117,7 @@ data ResendResponse = ResendIndividualRes EncryptedPayload
 data ApiRequest = ApiSend Send
                 | ApiReceive Receive
                 | ApiReceiveRaw Receive
+                | ApiDelete Delete
                 | ApiPush EncryptedPayload
                 | ApiResend Resend
                 | ApiPartyInfo PartyInfo
@@ -114,6 +127,7 @@ data ApiRequest = ApiSend Send
 data ApiResponse = ApiSendR SendResponse
                  | ApiReceiveR ReceiveResponse
                  | ApiReceiveRawR ReceiveResponse
+                 | ApiDeleteR DeleteResponse
                  | ApiPushR Text
                  | ApiResendR ResendResponse
                  | ApiPartyInfoR PartyInfo
@@ -222,6 +236,7 @@ parseRequest ["send"]       b _ = ApiSend <$> AE.eitherDecode' b
 parseRequest ["receive"]    b _ = ApiReceive <$> AE.eitherDecode' b
 parseRequest ["sendRaw"]    b h = ApiSend <$> decodeSendRaw b h
 parseRequest ["receiveRaw"] b _ = ApiReceive <$> AE.eitherDecode' b
+parseRequest ["delete"]     b _ = ApiDelete <$> AE.eitherDecode' b
 -----
 -- Node to node
 -----
@@ -247,6 +262,7 @@ performRequest :: TVar Node -> ApiRequest -> IO (Either String ApiResponse)
 performRequest nvar (ApiSend sreq)       = readTVarIO nvar >>= \node -> fmap ApiSendR       <$> send node sreq
 performRequest nvar (ApiReceive rreq)    = readTVarIO nvar >>= \node -> fmap ApiReceiveR    <$> receive node rreq
 performRequest nvar (ApiReceiveRaw rreq) = readTVarIO nvar >>= \node -> fmap ApiReceiveRawR <$> receive node rreq
+performRequest nvar (ApiDelete dreq)     = readTVarIO nvar >>= \node -> fmap ApiDeleteR     <$> delete node dreq
 performRequest nvar (ApiPush preq)       = readTVarIO nvar >>= \node -> fmap ApiPushR       <$> push node preq
 performRequest nvar (ApiResend rreq)     = readTVarIO nvar >>= \node -> fmap ApiResendR     <$> resend node rreq
 performRequest nvar (ApiPartyInfo pireq) = Right . ApiPartyInfoR <$> atomically (partyInfo nvar pireq)
@@ -256,6 +272,7 @@ response :: ApiResponse -> BL.ByteString
 response (ApiSendR sres)                        = AE.encode sres
 response (ApiReceiveR rres)                     = AE.encode rres
 response (ApiReceiveRawR ReceiveResponse{..})   = BL.fromStrict rresPayload
+response (ApiDeleteR DeleteResponse)            = ""
 response (ApiPushR k)                           = BL.fromStrict $ TE.encodeUtf8 k
 response (ApiResendR (ResendIndividualRes epl)) = encode epl
 response (ApiResendR ResentAll)                 = ""
@@ -283,6 +300,11 @@ receive node Receive{..} = do
         Right pl -> return $ Right ReceiveResponse
             { rresPayload = pl
             }
+
+delete :: Node -> Delete -> IO (Either String DeleteResponse)
+delete Node{..} Delete{..} = do
+    _ <- deletePayload nodeStorage dreqKey
+    return $ Right DeleteResponse
 
 push :: Node -> EncryptedPayload -> IO (Either String Text)
 push Node{..} epl = savePayload nodeStorage (epl, [])
