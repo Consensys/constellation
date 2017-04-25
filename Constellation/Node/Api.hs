@@ -4,28 +4,26 @@
 {-# LANGUAGE StrictData #-}
 module Constellation.Node.Api where
 
-import ClassyPrelude hiding (delete, log, pack, unpack)
+import ClassyPrelude hiding (delete, log)
 import Control.Monad (void)
 import Data.Aeson
     (FromJSON(parseJSON), ToJSON(toJSON), Value(Object), (.:), (.=), object)
 import Data.Binary (encode, decodeOrFail)
-import Data.ByteString.Char8 (unpack, split)
 import Data.HashMap.Strict ((!))
 import Data.IP (IP(IPv4, IPv6), toHostAddress, toHostAddress6)
 import Data.Maybe (fromJust)
 import Data.Set (Set)
 import Data.Text.Format (Shown(Shown))
-import Network.HTTP.Types
-    (Header, HeaderName, RequestHeaders)
-import Network.HTTP.Types.Header
-    (hContentLength)
+import Network.HTTP.Types (Header, HeaderName, RequestHeaders)
+import Network.HTTP.Types.Header (hContentLength)
 import Network.Socket
     (SockAddr(SockAddrInet, SockAddrInet6), HostAddress, HostAddress6)
 import Text.Read (read)
 import qualified Data.Aeson as AE
 import qualified Data.ByteString.Base64 as B64
+import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy as BL
-import qualified Data.HashMap.Strict as HMap
+import qualified Data.HashMap.Strict as HM
 import qualified Data.Set as Set
 import qualified Data.Text.Encoding as TE
 import qualified Network.Wai as Wai
@@ -35,8 +33,7 @@ import Constellation.Enclave.Payload
 import Constellation.Enclave.Types (PublicKey, mkPublicKey)
 import Constellation.Node
 import Constellation.Node.Types
-import Constellation.Util.ByteString
-    (mustB64DecodeBs, mustB64TextDecodeBs)
+import Constellation.Util.ByteString (mustB64DecodeBs, mustB64TextDecodeBs)
 import Constellation.Util.Logging (debugf, warnf)
 import Constellation.Util.Network (hFrom, hTo)
 import Constellation.Util.Wai
@@ -146,30 +143,32 @@ decodeSendRaw b h = case getHeaders [hContentLength, hFrom, hTo] h of
                     , sreqFrom    = mustDecodeB64PublicKey $ hmap ! hFrom
                     , sreqTo      = decodePublicKeys $ hmap ! hTo
                     }
-                    where hmap = HMap.fromList headers
+                    where hmap = HM.fromList headers
     Left err      -> Left err
 
 decodePayload :: ByteString -> BL.ByteString -> ByteString
-decodePayload h = toStrict . take (read $ unpack h :: Int64)
+decodePayload h = toStrict . take (read $ BC.unpack h :: Int64)
 
 mustDecodeB64PublicKey :: ByteString -> PublicKey
 mustDecodeB64PublicKey = fromJust . mkPublicKey . mustB64DecodeBs
 
 decodePublicKeys :: ByteString -> [PublicKey]
-decodePublicKeys = (map mustDecodeB64PublicKey) . (split ',')
+decodePublicKeys = (map mustDecodeB64PublicKey) . (BC.split ',')
 
 getHeaders :: [HeaderName] -> RequestHeaders -> Either String RequestHeaders
-getHeaders names headers = foldl' (\acc name -> case getHeader name headers of
-                                     Just h  -> (case acc of
-                                                   Right xs -> Right $ h:xs
-                                                   err      -> err)
-                                     Nothing -> Left $ "Missing header: " ++ show name
-                                 ) (Right []) names
+getHeaders names headers =
+    foldl' (\acc name -> case getHeader name headers of
+               Just h  -> (case acc of
+                             Right xs -> Right $ h:xs
+                             err      -> err)
+               Nothing -> Left $ "Missing header: " ++ show name
+           ) (Right []) names
 
 getHeader :: HeaderName -> RequestHeaders -> Maybe Header
-getHeader hname headers = case (filter (\(header, _) -> header == hname) headers) of
-                            (x):_ -> Just x
-                            _     -> Nothing
+getHeader hname headers =
+    case (filter (\(header, _) -> header == hname) headers) of
+        (x):_ -> Just x
+        _     -> Nothing
 
 whitelist :: [String] -> Whitelist
 whitelist strs = Whitelist
@@ -199,8 +198,8 @@ app Nothing   allowSendReceive nvar req resp =
 request :: Bool -> TVar Node -> Wai.Application
 request allowSendReceive nvar req resp = do
     b <- Wai.lazyRequestBody req
-    let h = Wai.requestHeaders req
-    let path = Wai.pathInfo req
+    let h    = Wai.requestHeaders req
+        path = Wai.pathInfo req
     case parseRequest path b h of
         Left err     -> do
             warnf "Failed to decode '{}' ({}) request: {}"
@@ -254,9 +253,12 @@ parseRequest ["upcheck"]    _ _ = Right ApiUpcheck
 parseRequest _              _ _ = Left "Not found"
 
 authenticateRequest :: Bool -> ApiRequest -> Bool
-authenticateRequest False (ApiSend _)    = False
-authenticateRequest False (ApiReceive _) = False
-authenticateRequest _     _              = True
+authenticateRequest False (ApiSend _)       = False
+authenticateRequest False (ApiReceive _)    = False
+
+authenticateRequest False (ApiReceiveRaw _) = False
+authenticateRequest False (ApiDelete _)     = False
+authenticateRequest _     _                 = True
 
 performRequest :: TVar Node -> ApiRequest -> IO (Either String ApiResponse)
 performRequest nvar (ApiSend sreq)       = readTVarIO nvar >>= \node -> fmap ApiSendR       <$> send node sreq
