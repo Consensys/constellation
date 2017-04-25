@@ -35,7 +35,6 @@ import Constellation.Node
 import Constellation.Node.Types
 import Constellation.Util.ByteString (mustB64DecodeBs, mustB64TextDecodeBs)
 import Constellation.Util.Logging (debugf, warnf)
-import Constellation.Util.Network (hFrom, hTo)
 import Constellation.Util.Wai
     (ok, badRequest, unauthorized, internalServerError)
 
@@ -135,6 +134,12 @@ data Whitelist = Whitelist
     { wlIPv4 :: Set HostAddress
     , wlIPv6 :: Set HostAddress6
     } deriving Show
+
+hFrom :: HeaderName
+hFrom = "from"
+
+hTo :: HeaderName
+hTo = "to"
 
 decodeSendRaw :: BL.ByteString -> RequestHeaders -> Either String Send
 decodeSendRaw b h = case getHeaders [hContentLength, hFrom, hTo] h of

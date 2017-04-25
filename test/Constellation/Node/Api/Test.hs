@@ -9,7 +9,7 @@ import Data.Maybe (fromJust)
 import Data.IP (toHostAddress, toHostAddress6)
 import Data.Text.Encoding (encodeUtf8)
 import Network.Socket (SockAddr(SockAddrInet, SockAddrInet6, SockAddrUnix, SockAddrCan))
-import Network.HTTP.Types (Header, HeaderName, RequestHeaders)
+import Network.HTTP.Types (Header, RequestHeaders)
 import Network.HTTP.Types.Header (hContentLength)
 import System.IO.Temp (withSystemTempDirectory)
 import Test.Tasty (TestTree, testGroup)
@@ -24,7 +24,6 @@ import Constellation.Node (nodeRefresh)
 import Constellation.Node.Api (Send(..))
 import Constellation.Node.Types (Node(nodeStorage), Storage(closeStorage))
 import Constellation.Util.ByteString (mustB64TextDecodeBs)
-import Constellation.Util.Network (hFrom, hTo)
 import qualified Constellation.Node.Api as NodeApi
 
 import Constellation.TestUtil (kvTest, setupTestNode, link, testSendPayload)
@@ -96,21 +95,21 @@ testSendAndReceivePayload = testCaseSteps "sendAndReceivePayload" $ \step ->
         mapM_ (closeStorage . nodeStorage) nodes
 
 header1 :: Header
-header1 = ("h1" :: HeaderName, BC.pack "payload1")
+header1 = ("h1", BC.pack "payload1")
 
 header2 :: Header
-header2 = ("h2" :: HeaderName, BC.pack "payload2")
+header2 = ("h2", BC.pack "payload2")
 
 headers :: RequestHeaders
 headers = [header1, header2]
 
 testGetHeader :: TestTree
 testGetHeader = testCase "getHeader" $
-    NodeApi.getHeader ("h1" :: HeaderName) headers @?= Just header1
+    NodeApi.getHeader "h1" headers @?= Just header1
 
 testGetHeaderInvalid :: TestTree
 testGetHeaderInvalid = testCase "getHeaderInvalid" $
-    NodeApi.getHeader ("invalid" :: HeaderName) headers @?= Nothing
+    NodeApi.getHeader "invalid" headers @?= Nothing
 
 pl :: String
 pl = "payload"
@@ -155,7 +154,7 @@ testDecodeSendRaw :: TestTree
 testDecodeSendRaw = testCase "decodeSendRaw" $
     (NodeApi.decodeSendRaw
          (BLC.pack pl)
-         [(hContentLength, pll), (hFrom, pk1bs), (hTo, pk2bs)]
+         [(hContentLength, pll), (NodeApi.hFrom, pk1bs), (NodeApi.hTo, pk2bs)]
     ) @?=
     (Right $ NodeApi.Send
         { sreqPayload = BC.pack pl

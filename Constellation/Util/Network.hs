@@ -11,12 +11,6 @@ import Network.Socket ( Family(AF_INET), SocketType(Stream)
                       , socket, socketPort, bind, close
                       )
 
-hFrom :: HeaderName
-hFrom = "from"
-
-hTo :: HeaderName
-hTo = "to"
-
 getUnusedPort :: IO Int
 getUnusedPort = do
     sock <- socket AF_INET Stream 0
