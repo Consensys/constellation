@@ -127,6 +127,7 @@ test-suite constellation-test
                      , classy-prelude
                      , cryptonite
                      , filepath
+                     , http-types
                      , iproute
                      , logging
                      , memory
