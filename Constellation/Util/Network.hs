@@ -4,7 +4,6 @@
 module Constellation.Util.Network where
 
 import ClassyPrelude
-import Network.HTTP.Types (HeaderName)
 import Network.Socket ( Family(AF_INET), SocketType(Stream)
                       , SockAddr(SockAddrInet)
                       , aNY_PORT, iNADDR_ANY
