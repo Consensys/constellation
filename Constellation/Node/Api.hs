@@ -255,7 +255,6 @@ parseRequest _              _ _ = Left "Not found"
 authenticateRequest :: Bool -> ApiRequest -> Bool
 authenticateRequest False (ApiSend _)       = False
 authenticateRequest False (ApiReceive _)    = False
-
 authenticateRequest False (ApiReceiveRaw _) = False
 authenticateRequest False (ApiDelete _)     = False
 authenticateRequest _     _                 = True
