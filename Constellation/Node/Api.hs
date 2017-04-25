@@ -239,7 +239,7 @@ parseRequest :: [Text] -> BL.ByteString -> RequestHeaders -> Either String ApiRe
 parseRequest ["send"]       b _ = ApiSend <$> AE.eitherDecode' b
 parseRequest ["receive"]    b _ = ApiReceive <$> AE.eitherDecode' b
 parseRequest ["sendRaw"]    b h = ApiSend <$> decodeSendRaw b h
-parseRequest ["receiveRaw"] b _ = ApiReceive <$> AE.eitherDecode' b
+parseRequest ["receiveRaw"] b _ = ApiReceiveRaw <$> AE.eitherDecode' b
 parseRequest ["delete"]     b _ = ApiDelete <$> AE.eitherDecode' b
 -----
 -- Node to node
