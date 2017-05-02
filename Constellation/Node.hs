@@ -29,21 +29,23 @@ newNode :: Crypt
         -> Storage
         -> Text
         -> [PublicKey]
+        -> [PublicKey]
         -> [Text]
         -> IO Node
-newNode crypt storage url rcpts parties = do
+newNode crypt storage url rcpts alwaysSendTo parties = do
     manager <- newManager tlsManagerSettings
         { managerConnCount = 100
         }
     return Node
-        { nodePi                = PartyInfo
+        { nodePi           = PartyInfo
               { piUrl     = url
               , piRcpts   = HM.fromList $ map (\pub -> (pub, url)) rcpts
               , piParties = HS.fromList (url : parties)
               }
-        , nodeCrypt             = crypt
-        , nodeStorage           = storage
-        , nodeManager           = manager
+        , nodeCrypt        = crypt
+        , nodeStorage      = storage
+        , nodeAlwaysSendTo = alwaysSendTo
+        , nodeManager      = manager
         }
 
 runNode :: TVar Node -> IO ()
@@ -125,7 +127,7 @@ sendPayload :: Node
             -> [PublicKey]
             -> IO [Either String Text]
 sendPayload node@Node{..} pl from rcpts = do
-    eenc <- encryptPayload nodeCrypt pl from rcpts
+    eenc <- encryptPayload nodeCrypt pl from (nodeAlwaysSendTo ++ rcpts)
     case eenc of
         Left err  -> return [Left err]
         Right epl -> do
