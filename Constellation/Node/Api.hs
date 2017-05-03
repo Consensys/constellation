@@ -110,6 +110,12 @@ data ResendResponse = ResendIndividualRes EncryptedPayload
                     | ResentAll
                     deriving (Show)
 
+-- | The Private API allows sending, receiving/decrypting, deleting, and other
+-- sensitive operations, while the Public API only allows what other nodes need
+-- to exchange payloads.
+data ApiType = Public
+             | Private
+
 data ApiRequest = ApiSend Send
                 | ApiReceive Receive
                 | ApiReceiveRaw Receive
@@ -191,9 +197,6 @@ whitelisted Whitelist{..} (SockAddrInet _ addr)      = addr `Set.member` wlIPv4
 whitelisted Whitelist{..} (SockAddrInet6 _ _ addr _) = addr `Set.member` wlIPv6
 -- SockAddrUnix connects to the private API which has a Nothing whitelist
 whitelisted _             _                          = False
-
-data ApiType = Private
-             | Public
 
 app :: Maybe Whitelist -> ApiType -> TVar Node -> Wai.Application
 app (Just wl) apiType nvar req resp =
