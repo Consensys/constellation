@@ -31,7 +31,6 @@ Constellation binaries for most major platforms can be downloaded [here](https:/
 ## Generating keys
 
   1. To generate a key pair "node", run `constellation-node --generatekeys=node`
-     or `constellation-enclave-keygen node`
 
   If you choose to lock the keys with a password, they will be encrypted using
   a master key derived from the password using Argon2i. This is designed to be
