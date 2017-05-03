@@ -21,7 +21,7 @@ import qualified Network.Wai.Handler.Warp as Warp
 
 import Constellation.Enclave.Types (PublicKey, mkPublicKey)
 import Constellation.Node (nodeRefresh)
-import Constellation.Node.Api (Send(..))
+import Constellation.Node.Api (ApiType(..), Send(..))
 import Constellation.Node.Types (Node(nodeStorage), Storage(closeStorage))
 import Constellation.Util.ByteString (mustB64TextDecodeBs)
 import qualified Constellation.Node.Api as NodeApi
@@ -61,9 +61,9 @@ testSendAndReceivePayload = testCaseSteps "sendAndReceivePayload" $ \step ->
         (node1Var, port1) <- setupTestNode d "node1"
         (node2Var, port2) <- setupTestNode d "node2"
         (node3Var, port3) <- setupTestNode d "node3"
-        tid1 <- forkIO $ Warp.run port1 $ NodeApi.app Nothing True node1Var
-        tid2 <- forkIO $ Warp.run port2 $ NodeApi.app Nothing True node2Var
-        tid3 <- forkIO $ Warp.run port3 $ NodeApi.app Nothing True node3Var
+        tid1 <- forkIO $ Warp.run port1 $ NodeApi.app Nothing Internal node1Var
+        tid2 <- forkIO $ Warp.run port2 $ NodeApi.app Nothing Internal node2Var
+        tid3 <- forkIO $ Warp.run port3 $ NodeApi.app Nothing Internal node3Var
 
         step "Linking nodes"
         atomically $ do

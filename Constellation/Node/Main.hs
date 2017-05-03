@@ -94,7 +94,7 @@ run cfg@Config{..} = do
             ( cfgPort
             , Shown $ if isNothing mwl then ["Disabled"] else cfgIpWhitelist
             )
-        Warp.run cfgPort $ NodeApi.app mwl False nvar
+        Warp.run cfgPort $ NodeApi.app mwl NodeApi.External nvar
     _ <- case cfgSocket of
         Just sockPath -> void $ forkIO $ do
             logf' "Internal API listening on {}" [sockPath]
@@ -103,7 +103,7 @@ run cfg@Config{..} = do
             bind sock $ SockAddrUnix sockPath
             listen sock maxListenQueue
             Warp.runSettingsSocket Warp.defaultSettings sock $
-                NodeApi.app Nothing True nvar
+                NodeApi.app Nothing NodeApi.Internal nvar
             close sock
         Nothing       -> return ()
     registerAtExit $ do

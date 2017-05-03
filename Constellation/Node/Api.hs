@@ -192,16 +192,19 @@ whitelisted Whitelist{..} (SockAddrInet6 _ _ addr _) = addr `Set.member` wlIPv6
 -- SockAddrUnix connects to the internal API which has a Nothing whitelist
 whitelisted _             _                          = False
 
-app :: Maybe Whitelist -> Bool -> TVar Node -> Wai.Application
-app (Just wl) allowSendReceive nvar req resp =
-    if whitelisted wl (Wai.remoteHost req)
-        then request allowSendReceive nvar req resp
-        else resp unauthorized
-app Nothing   allowSendReceive nvar req resp =
-    request allowSendReceive nvar req resp
+data ApiType = Internal
+             | External
 
-request :: Bool -> TVar Node -> Wai.Application
-request allowSendReceive nvar req resp = do
+app :: Maybe Whitelist -> ApiType -> TVar Node -> Wai.Application
+app (Just wl) apiType nvar req resp =
+    if whitelisted wl (Wai.remoteHost req)
+        then request apiType nvar req resp
+        else resp unauthorized
+app Nothing   apiType nvar req resp =
+    request apiType nvar req resp
+
+request :: ApiType -> TVar Node -> Wai.Application
+request apiType nvar req resp = do
     b <- Wai.lazyRequestBody req
     let h    = Wai.requestHeaders req
         path = Wai.pathInfo req
@@ -213,7 +216,7 @@ request allowSendReceive nvar req resp = do
                 , err
                 )
             resp badRequest
-        Right apiReq -> if authenticateRequest allowSendReceive apiReq
+        Right apiReq -> if authorizedRequest apiType apiReq
             then do
                 eapiRes <- performRequest nvar apiReq
                 case eapiRes of
@@ -257,12 +260,16 @@ parseRequest ["partyinfo"]  b _ = case decodeOrFail b of
 parseRequest ["upcheck"]    _ _ = Right ApiUpcheck
 parseRequest _              _ _ = Left "Not found"
 
-authenticateRequest :: Bool -> ApiRequest -> Bool
-authenticateRequest False (ApiSend _)       = False
-authenticateRequest False (ApiReceive _)    = False
-authenticateRequest False (ApiReceiveRaw _) = False
-authenticateRequest False (ApiDelete _)     = False
-authenticateRequest _     _                 = True
+authorizedRequest :: ApiType -> ApiRequest -> Bool
+authorizedRequest Internal (ApiSend _)       = True
+authorizedRequest Internal (ApiReceive _)    = True
+authorizedRequest Internal (ApiReceiveRaw _) = True
+authorizedRequest Internal (ApiDelete _)     = True
+authorizedRequest _        (ApiPush _)       = True
+authorizedRequest _        (ApiResend _)     = True
+authorizedRequest _        (ApiPartyInfo _)  = True
+authorizedRequest _        ApiUpcheck        = True
+authorizedRequest _        _                 = False
 
 performRequest :: TVar Node -> ApiRequest -> IO (Either String ApiResponse)
 performRequest nvar (ApiSend sreq)       = readTVarIO nvar >>= \node -> fmap ApiSendR       <$> send node sreq
