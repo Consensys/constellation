@@ -97,10 +97,10 @@ options =
       "URL for this node (what's advertised to other nodes, e.g. https://constellation.mydomain.com/)"
 
     , Option [] ["port"] (OptArg (justDo setPort) "NUM")
-      "Port to listen on for the external API"
+      "Port to listen on for the public API"
 
     , Option [] ["socket"] (OptArg (justDo setSocket) "FILE")
-      "Path to IPC socket file to create for internal API access"
+      "Path to IPC socket file to create for private API access"
 
     , Option [] ["othernodes"] (OptArg (justDo setOtherNodes) "URL...")
       "Comma-separated list of other node URLs to connect to on startup (this list may be incomplete)"
@@ -118,7 +118,7 @@ options =
       "Storage path to pass to the storage engine"
 
     , Option [] ["ipwhitelist"] (OptArg (justDo setIpWhitelist) "IP...")
-      "Comma-separated list of IPv4 and IPv6 addresses that may connect to this node's external API"
+      "Comma-separated list of IPv4 and IPv6 addresses that may connect to this node's public API"
 
     , Option ['v'] ["verbosity"] (OptArg setVerbosity "NUM")
       "print more detailed information (optionally specify a number or add v's to increase verbosity)"

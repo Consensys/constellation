@@ -189,11 +189,11 @@ whitelist strs = Whitelist
 whitelisted :: Whitelist -> SockAddr -> Bool
 whitelisted Whitelist{..} (SockAddrInet _ addr)      = addr `Set.member` wlIPv4
 whitelisted Whitelist{..} (SockAddrInet6 _ _ addr _) = addr `Set.member` wlIPv6
--- SockAddrUnix connects to the internal API which has a Nothing whitelist
+-- SockAddrUnix connects to the private API which has a Nothing whitelist
 whitelisted _             _                          = False
 
-data ApiType = Internal
-             | External
+data ApiType = Private
+             | Public
 
 app :: Maybe Whitelist -> ApiType -> TVar Node -> Wai.Application
 app (Just wl) apiType nvar req resp =
@@ -261,15 +261,15 @@ parseRequest ["upcheck"]    _ _ = Right ApiUpcheck
 parseRequest _              _ _ = Left "Not found"
 
 authorizedRequest :: ApiType -> ApiRequest -> Bool
-authorizedRequest Internal (ApiSend _)       = True
-authorizedRequest Internal (ApiReceive _)    = True
-authorizedRequest Internal (ApiReceiveRaw _) = True
-authorizedRequest Internal (ApiDelete _)     = True
-authorizedRequest _        (ApiPush _)       = True
-authorizedRequest _        (ApiResend _)     = True
-authorizedRequest _        (ApiPartyInfo _)  = True
-authorizedRequest _        ApiUpcheck        = True
-authorizedRequest _        _                 = False
+authorizedRequest Private (ApiSend _)       = True
+authorizedRequest Private (ApiReceive _)    = True
+authorizedRequest Private (ApiReceiveRaw _) = True
+authorizedRequest Private (ApiDelete _)     = True
+authorizedRequest _       (ApiPush _)       = True
+authorizedRequest _       (ApiResend _)     = True
+authorizedRequest _       (ApiPartyInfo _)  = True
+authorizedRequest _       ApiUpcheck        = True
+authorizedRequest _       _                 = False
 
 performRequest :: TVar Node -> ApiRequest -> IO (Either String ApiResponse)
 performRequest nvar (ApiSend sreq)       = readTVarIO nvar >>= \node -> fmap ApiSendR       <$> send node sreq

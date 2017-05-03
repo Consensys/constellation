@@ -61,9 +61,9 @@ testSendAndReceivePayload = testCaseSteps "sendAndReceivePayload" $ \step ->
         (node1Var, port1) <- setupTestNode d "node1"
         (node2Var, port2) <- setupTestNode d "node2"
         (node3Var, port3) <- setupTestNode d "node3"
-        tid1 <- forkIO $ Warp.run port1 $ NodeApi.app Nothing Internal node1Var
-        tid2 <- forkIO $ Warp.run port2 $ NodeApi.app Nothing Internal node2Var
-        tid3 <- forkIO $ Warp.run port3 $ NodeApi.app Nothing Internal node3Var
+        tid1 <- forkIO $ Warp.run port1 $ NodeApi.app Nothing Private node1Var
+        tid2 <- forkIO $ Warp.run port2 $ NodeApi.app Nothing Private node2Var
+        tid3 <- forkIO $ Warp.run port3 $ NodeApi.app Nothing Private node3Var
 
         step "Linking nodes"
         atomically $ do
