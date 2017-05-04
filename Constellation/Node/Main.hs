@@ -23,7 +23,7 @@ import qualified Network.Wai.Handler.Warp as Warp
 
 import Constellation.Enclave
     (newEnclave', enclaveEncryptPayload, enclaveDecryptPayload)
-import Constellation.Enclave.Key (mustLoadKeyPairs)
+import Constellation.Enclave.Key (mustLoadKeyPairs, mustLoadPublicKeys)
 import Constellation.Node (newNode, runNode)
 import Constellation.Node.Storage.BerkeleyDb (berkeleyDbStorage)
 -- import Constellation.Node.Storage.Memory (memoryStorage)
@@ -81,11 +81,12 @@ run cfg@Config{..} = do
             { encryptPayload = enclaveEncryptPayload e
             , decryptPayload = enclaveDecryptPayload e
             }
+    ast <- mustLoadPublicKeys cfgAlwaysSendTo
     logf' "Initializing storage {}" [cfgStorage]
     storage <- berkeleyDbStorage cfgStorage
     -- storage <- memoryStorage
     nvar    <- newTVarIO =<<
-        newNode crypt storage cfgUrl (map fst ks) cfgOtherNodes
+        newNode crypt storage cfgUrl (map fst ks) ast cfgOtherNodes
     _ <- forkIO $ do
         let mwl = if null cfgIpWhitelist
                 then Nothing
