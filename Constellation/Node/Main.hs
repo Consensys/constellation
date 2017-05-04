@@ -23,7 +23,7 @@ import qualified Network.Wai.Handler.Warp as Warp
 
 import Constellation.Enclave
     (newEnclave', enclaveEncryptPayload, enclaveDecryptPayload)
-import Constellation.Enclave.Key (mustLoadKeyPairs)
+import Constellation.Enclave.Key (mustLoadKeyPairs, mustLoadPublicKeys)
 import Constellation.Enclave.Keygen.Main (generateKeyPair)
 import Constellation.Node (newNode, runNode)
 import Constellation.Node.Storage.BerkeleyDb (berkeleyDbStorage)
@@ -84,20 +84,21 @@ run cfg@Config{..} = do
             { encryptPayload = enclaveEncryptPayload e
             , decryptPayload = enclaveDecryptPayload e
             }
+    ast <- mustLoadPublicKeys cfgAlwaysSendTo
     logf' "Initializing storage {}" [cfgStorage]
     storage <- berkeleyDbStorage cfgStorage
     -- storage <- memoryStorage
     nvar    <- newTVarIO =<<
-        newNode crypt storage cfgUrl (map fst ks) cfgOtherNodes
+        newNode crypt storage cfgUrl (map fst ks) ast cfgOtherNodes
     _ <- forkIO $ do
         let mwl = if null cfgIpWhitelist
                 then Nothing
                 else Just $ NodeApi.whitelist cfgIpWhitelist
-        logf' "External API listening on 0.0.0.0 port {} with whitelist: {}"
+        logf' "Public API listening on 0.0.0.0 port {} with whitelist: {}"
             ( cfgPort
             , Shown $ if isNothing mwl then ["Disabled"] else cfgIpWhitelist
             )
-        Warp.run cfgPort $ NodeApi.app mwl False nvar
+        Warp.run cfgPort $ NodeApi.app mwl NodeApi.Public nvar
     _ <- case cfgSocket of
         Just sockPath -> void $ forkIO $ do
             logf' "Internal API listening on {}" [sockPath]
@@ -106,7 +107,7 @@ run cfg@Config{..} = do
             bind sock $ SockAddrUnix sockPath
             listen sock maxListenQueue
             Warp.runSettingsSocket Warp.defaultSettings sock $
-                NodeApi.app Nothing True nvar
+                NodeApi.app Nothing NodeApi.Private nvar
             close sock
         Nothing       -> return ()
     registerAtExit $ do

@@ -29,6 +29,7 @@ data Config = Config
     , cfgOtherNodes       :: [Text]
     , cfgPublicKeys       :: [FilePath]
     , cfgPrivateKeys      :: [FilePath]
+    , cfgAlwaysSendTo     :: [FilePath]
     , cfgPasswords        :: Maybe FilePath
     , cfgStorage          :: String
     , cfgIpWhitelist      :: [String]
@@ -45,6 +46,7 @@ instance Default Config where
         , cfgOtherNodes       = []
         , cfgPublicKeys       = []
         , cfgPrivateKeys      = []
+        , cfgAlwaysSendTo     = []
         , cfgPasswords        = Nothing
         , cfgStorage          = "storage"
         , cfgIpWhitelist      = []
@@ -64,31 +66,34 @@ instance FromJSON Config where
                 msocket    <- v .:? "socketPath"
                 otherNodes <- v .:? "otherNodeUrls" .!= []
                 pubKeys    <- maybeToList <$> v .:? "publicKeyPath"
+                apubs      <- maybeToList <$> v .:? "archivalPublicKeyPath"
                 storage    <- v .:? "storagePath" .!= "storage"
                 ipwl       <- v .:? "ipWhitelist" .!= []
                 return cfg
-                    { cfgSocket      = msocket
-                    , cfgOtherNodes  = otherNodes
-                    , cfgPublicKeys  = pubKeys
-                    , cfgPrivateKeys = [oldPrivPath]
-                    , cfgStorage     = storage
-                    , cfgIpWhitelist = ipwl
+                    { cfgSocket       = msocket
+                    , cfgOtherNodes   = otherNodes
+                    , cfgPublicKeys   = pubKeys
+                    , cfgPrivateKeys  = [oldPrivPath]
+                    , cfgAlwaysSendTo = apubs
+                    , cfgStorage      = storage
+                    , cfgIpWhitelist  = ipwl
                     }
             Nothing        -> parse
       where
         parse = Config
-            <$> v .:? "url"         .!= ""
-            <*> v .:? "port"        .!= 0
+            <$> v .:? "url"          .!= ""
+            <*> v .:? "port"         .!= 0
             <*> v .:? "socket"
-            <*> v .:? "othernodes"  .!= []
-            <*> v .:? "publickeys"  .!= []
-            <*> v .:? "privatekeys" .!= []
+            <*> v .:? "othernodes"   .!= []
+            <*> v .:? "publickeys"   .!= []
+            <*> v .:? "privatekeys"  .!= []
+            <*> v .:? "alwayssendto" .!= []
             <*> v .:? "passwords"
-            <*> v .:? "storage"     .!= "storage"
-            <*> v .:? "ipwhitelist" .!= []
+            <*> v .:? "storage"      .!= "storage"
+            <*> v .:? "ipwhitelist"  .!= []
             <*> pure False
             <*> pure []
-            <*> v .:? "verbosity"   .!= 1
+            <*> v .:? "verbosity"    .!= 1
     parseJSON _          = mzero
 
 defaultVerbosity :: Int
@@ -100,10 +105,10 @@ options =
       "URL for this node (what's advertised to other nodes, e.g. https://constellation.mydomain.com/)"
 
     , Option [] ["port"] (OptArg (justDo setPort) "NUM")
-      "Port to listen on for the external API"
+      "Port to listen on for the public API"
 
     , Option [] ["socket"] (OptArg (justDo setSocket) "FILE")
-      "Path to IPC socket file to create for internal API access"
+      "Path to IPC socket file to create for private API access"
 
     , Option [] ["othernodes"] (OptArg (justDo setOtherNodes) "URL...")
       "Comma-separated list of other node URLs to connect to on startup (this list may be incomplete)"
@@ -114,6 +119,9 @@ options =
     , Option [] ["privatekeys"] (OptArg (justDo setPrivateKeys) "FILE...")
       "Comma-separated list of paths to corresponding private keys (these must be given in the same order as --publickeys)"
 
+    , Option [] ["alwayssendto"] (OptArg (justDo setAlwaysSendTo) "FILE...")
+      "Comma-separated list of paths to public keys that are always included as recipients (these must be advertised somewhere)"
+
     , Option [] ["passwords"] (OptArg (justDo setPasswords) "FILE")
       "A file containing the passwords for the specified --privatekeys, one per line, in the same order (if one key is not locked, add an empty line)"
 
@@ -121,7 +129,7 @@ options =
       "Storage path to pass to the storage engine"
 
     , Option [] ["ipwhitelist"] (OptArg (justDo setIpWhitelist) "IP...")
-      "Comma-separated list of IPv4 and IPv6 addresses that may connect to this node's external API"
+      "Comma-separated list of IPv4 and IPv6 addresses that may connect to this node's public API"
 
     , Option ['v'] ["verbosity"] (OptArg setVerbosity "NUM")
       "print more detailed information (optionally specify a number or add v's to increase verbosity)"
@@ -154,6 +162,9 @@ setPublicKeys s c = c { cfgPublicKeys = map trimBoth (splitOn "," s) }
 
 setPrivateKeys :: String -> Config -> Config
 setPrivateKeys s c = c { cfgPrivateKeys = map trimBoth (splitOn "," s) }
+
+setAlwaysSendTo :: String -> Config -> Config
+setAlwaysSendTo s c = c { cfgAlwaysSendTo = map trimBoth (splitOn "," s) }
 
 setPasswords :: String -> Config -> Config
 setPasswords s c = c { cfgPasswords = Just s }

@@ -14,10 +14,11 @@ import Constellation.Enclave.Payload (EncryptedPayload)
 import Constellation.Enclave.Types (PublicKey)
 
 data Node = Node
-    { nodePi      :: PartyInfo
-    , nodeCrypt   :: Crypt
-    , nodeStorage :: Storage
-    , nodeManager :: Manager
+    { nodePi           :: PartyInfo
+    , nodeCrypt        :: Crypt
+    , nodeStorage      :: Storage
+    , nodeAlwaysSendTo :: [PublicKey]
+    , nodeManager      :: Manager
     }
 
 data PartyInfo = PartyInfo

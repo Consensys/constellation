@@ -36,7 +36,7 @@ setupTestNode d name = do
     port    <- getUnusedPort
     nvar    <- newTVarIO =<<
         newNode crypt storage (tformat "http://localhost:{}/" [port])
-        [pub1, pub2] []
+        [pub1, pub2] [] []
     return (nvar, port)
 
 link :: TVar Node -> TVar Node -> STM ()
