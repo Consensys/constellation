@@ -24,6 +24,7 @@ import qualified Network.Wai.Handler.Warp as Warp
 import Constellation.Enclave
     (newEnclave', enclaveEncryptPayload, enclaveDecryptPayload)
 import Constellation.Enclave.Key (mustLoadKeyPairs, mustLoadPublicKeys)
+import Constellation.Enclave.Keygen.Main (generateKeyPair)
 import Constellation.Node (newNode, runNode)
 import Constellation.Node.Storage.BerkeleyDb (berkeleyDbStorage)
 -- import Constellation.Node.Storage.Memory (memoryStorage)
@@ -46,7 +47,9 @@ defaultMain = do
     (cfg, _) <- extractConfig args
     if cfgJustShowVersion cfg
         then putStrLn ("Constellation Node " ++ version)
-        else withStderrLogging $ run cfg
+        else case cfgJustGenerateKeys cfg of
+                 [] -> withStderrLogging $ run cfg
+                 ks -> mapM_ generateKeyPair ks
 
 run :: Config -> IO ()
 run cfg@Config{..} = do

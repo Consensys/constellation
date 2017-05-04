@@ -23,34 +23,36 @@ import Constellation.Util.Exception (trys)
 import Constellation.Util.String (trimBoth)
 
 data Config = Config
-    { cfgUrl             :: Text
-    , cfgPort            :: Int
-    , cfgSocket          :: Maybe FilePath
-    , cfgOtherNodes      :: [Text]
-    , cfgPublicKeys      :: [FilePath]
-    , cfgPrivateKeys     :: [FilePath]
-    , cfgAlwaysSendTo    :: [FilePath]
-    , cfgPasswords       :: Maybe FilePath
-    , cfgStorage         :: String
-    , cfgIpWhitelist     :: [String]
-    , cfgJustShowVersion :: Bool
-    , cfgVerbosity       :: Int
+    { cfgUrl              :: Text
+    , cfgPort             :: Int
+    , cfgSocket           :: Maybe FilePath
+    , cfgOtherNodes       :: [Text]
+    , cfgPublicKeys       :: [FilePath]
+    , cfgPrivateKeys      :: [FilePath]
+    , cfgAlwaysSendTo     :: [FilePath]
+    , cfgPasswords        :: Maybe FilePath
+    , cfgStorage          :: String
+    , cfgIpWhitelist      :: [String]
+    , cfgJustShowVersion  :: Bool
+    , cfgJustGenerateKeys :: [String]
+    , cfgVerbosity        :: Int
     } deriving Show
 
 instance Default Config where
     def = Config
-        { cfgUrl             = ""
-        , cfgPort            = 0
-        , cfgSocket          = Nothing
-        , cfgOtherNodes      = []
-        , cfgPublicKeys      = []
-        , cfgPrivateKeys     = []
-        , cfgAlwaysSendTo    = []
-        , cfgPasswords       = Nothing
-        , cfgStorage         = "storage"
-        , cfgIpWhitelist     = []
-        , cfgJustShowVersion = False
-        , cfgVerbosity       = defaultVerbosity
+        { cfgUrl              = ""
+        , cfgPort             = 0
+        , cfgSocket           = Nothing
+        , cfgOtherNodes       = []
+        , cfgPublicKeys       = []
+        , cfgPrivateKeys      = []
+        , cfgAlwaysSendTo     = []
+        , cfgPasswords        = Nothing
+        , cfgStorage          = "storage"
+        , cfgIpWhitelist      = []
+        , cfgJustShowVersion  = False
+        , cfgJustGenerateKeys = []
+        , cfgVerbosity        = defaultVerbosity
         }
 
 instance FromJSON Config where
@@ -90,6 +92,7 @@ instance FromJSON Config where
             <*> v .:? "storage"      .!= "storage"
             <*> v .:? "ipwhitelist"  .!= []
             <*> pure False
+            <*> pure []
             <*> v .:? "verbosity"    .!= 1
     parseJSON _          = mzero
 
@@ -132,7 +135,10 @@ options =
       "print more detailed information (optionally specify a number or add v's to increase verbosity)"
 
     , Option ['V', '?'] ["version"] (NoArg setVersion)
-      "output current version information and exit"
+      "output current version information, then exit"
+
+    , Option [] ["generatekeys"] (OptArg (justDo setGenerateKeys) "NAME...")
+      "comma-separated list of key pair names to generate, then exit"
     ]
 
 justDo :: (String -> Config -> Config) -> Maybe String -> Config -> Config
@@ -179,6 +185,9 @@ setVerbosity Nothing  c = c { cfgVerbosity = 2 }  -- '-v' given, increase to inf
 
 setVersion :: Config -> Config
 setVersion c = c { cfgJustShowVersion = True }
+
+setGenerateKeys :: String -> Config -> Config
+setGenerateKeys s c = c { cfgJustGenerateKeys = map trimBoth (splitOn "," s) }
 
 extractConfig :: [String] -> IO (Config, [String])
 extractConfig []   = errorOut "No arguments given"
