@@ -67,13 +67,14 @@ instance FromJSON Config where
                 otherNodes <- v .:? "otherNodeUrls" .!= []
                 pubKeys    <- maybeToList <$> v .:? "publicKeyPath"
                 apubs      <- maybeToList <$> v .:? "archivalPublicKeyPath"
+                aprivs     <- maybeToList <$> v .:? "archivalPrivateKeyPath"
                 storage    <- v .:? "storagePath" .!= "storage"
                 ipwl       <- v .:? "ipWhitelist" .!= []
                 return cfg
                     { cfgSocket       = msocket
                     , cfgOtherNodes   = otherNodes
-                    , cfgPublicKeys   = pubKeys
-                    , cfgPrivateKeys  = [oldPrivPath]
+                    , cfgPublicKeys   = pubKeys ++ apubs
+                    , cfgPrivateKeys  = [oldPrivPath] ++ aprivs
                     , cfgAlwaysSendTo = apubs
                     , cfgStorage      = storage
                     , cfgIpWhitelist  = ipwl
