@@ -8,7 +8,7 @@ def main():
         usage()
         return
     for k, v in dbhash.open(sys.argv[1]).iteritems():
-        print k
+        print(k)
 
 def usage():
     print("Usage: {} <path to .db file, ...>".format(sys.argv[0]))
