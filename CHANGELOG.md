@@ -42,7 +42,7 @@ the Changed section below and [sample.conf] for more information.
   entry in the passwords file.
 
 - Support for deleting payloads and addition of `delete` method for
-  the private API (Thanks to Conor Svensson.)
+  the private API. (Thanks to Conor Svensson.)
 
 - Addition of `sendRaw` and `receiveRaw` methods to the private API
   which forego base64-encoding and the associated overhead. (Thanks to
