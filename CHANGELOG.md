@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 This release includes changes to the configuration file
 format. Backward compatibility is maintained, but we recommend users
 migrate to the new format as soon as it's convenient. Please see
-the Changed section below and [sample.conf] for more information.
+the Changed section below and `sample.conf` for more information.
 
 ### Added
 
@@ -104,4 +104,3 @@ the Changed section below and [sample.conf] for more information.
 
 [Unreleased]: https://github.com/jpmorganchase/constellation/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/jpmorganchase/constellation/compare/v0.0.1...v0.1.0
-[sample.conf]: https://github.com/jpmorganchase/constellation/sample.conf
