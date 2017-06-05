@@ -86,10 +86,10 @@ the Changed section below and [sample.conf] for more information.
   to the rest of the network.)
 
 ### Deprecated
-- Archival keys (`archivalPrivateKeyPath` and
-  `archivalPublicKeyPath`.) Configuration files using the old format
-  will be translated to host the archival private key and add the
-  public key to `alwayssendto` automatically.
+- The camelcase command line options `socketPath`, `otherNodeUrls`,
+  `publicKeyPath`, `privateKeyPath`, `storagePath`, `ipWhitelist`
+  `archivalPrivateKeyPath` and `archivalPublicKeyPath`.
+  (please see Changed section above for details.)
 
 ### Fixed
 - Any newlines will be ignored in key files.
