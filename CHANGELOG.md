@@ -86,7 +86,7 @@ the Changed section below and `sample.conf` for more information.
   to the rest of the network.)
 
 ### Deprecated
-- The camelcase command line options `socketPath`, `otherNodeUrls`,
+- The camel case configuration options `socketPath`, `otherNodeUrls`,
   `publicKeyPath`, `privateKeyPath`, `storagePath`, `ipWhitelist`
   `archivalPrivateKeyPath` and `archivalPublicKeyPath`.
   (please see Changed section above for details.)
