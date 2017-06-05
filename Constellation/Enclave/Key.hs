@@ -33,7 +33,7 @@ loadKeyPair (pubPath, privPath, mpwd) = runEitherT $ do
         Just pwd -> return $ unlock pwd locked
         Nothing  -> promptingUnlock locked
     liftIO $ putStrLn $ "Unlocked " ++ privPath
-    (pub,) <$> maybeToEitherT "Failed to S.encode privBs" (S.decode privBs)
+    (pub,) <$> maybeToEitherT "Failed to S.decode privBs" (S.decode privBs)
 
 loadPublicKey :: FilePath -> IO (Either String PublicKey)
 loadPublicKey pubPath = runEitherT $ do
