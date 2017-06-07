@@ -5,7 +5,7 @@ All major changes to Constellation will be recorded here.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [0.1.0] - 2017-06-05
+## [0.1.0] - 2017-06-06
 
 This release includes changes to the configuration file
 format. Backward compatibility is maintained, but we recommend users
