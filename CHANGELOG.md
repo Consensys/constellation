@@ -85,6 +85,12 @@ the Changed section below and `sample.conf` for more information.
   however, that this key will be advertised as available on this node
   to the rest of the network.)
 
+  If you're using Constellation with Quorum 1.1.0 or earlier and
+  pointing to the new configuration file in PRIVATE_CONFIG, add
+  `socketPath` and `publicKeyPath` to the bottom of the file in order
+  for geth to load properly, then remove those options after upgrading
+  to a later release.
+
 ### Deprecated
 - The camel case configuration options `socketPath`, `otherNodeUrls`,
   `publicKeyPath`, `privateKeyPath`, `storagePath`, `ipWhitelist`
