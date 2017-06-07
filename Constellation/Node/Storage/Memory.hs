@@ -6,7 +6,7 @@ module Constellation.Node.Storage.Memory where
 
 import ClassyPrelude hiding (delete, hash)
 import Crypto.Hash (Digest, SHA3_512, hash)
-import qualified Data.ByteString.Base64 as B64
+import Data.ByteArray.Encoding (Base(Base64), convertToBase)
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Text.Encoding as TE
 
@@ -16,7 +16,6 @@ import Constellation.Enclave.Types (PublicKey)
 import Constellation.Node.Types
     (Storage(Storage, savePayload, loadPayload, deletePayload,
              traverseStorage, closeStorage))
-import Constellation.Util.Memory (byteArrayToByteString)
 
 type Db = TVar (HM.HashMap Text (EncryptedPayload, [PublicKey]))
 
@@ -36,8 +35,7 @@ save mvar x@(EncryptedPayload{..}, _) = atomically $
     -- TODO: Error out when the key already exists (collisions)
     modifyTVar mvar (HM.insert dig x) >> return (Right dig)
   where
-    dig = TE.decodeUtf8 $ B64.encode $
-        byteArrayToByteString (hash eplCt :: Digest SHA3_512)
+    dig = TE.decodeUtf8 $ convertToBase Base64 (hash eplCt :: Digest SHA3_512)
 
 load :: Db -> Text -> IO (Either String (EncryptedPayload, [PublicKey]))
 load mvar k = atomically $ do

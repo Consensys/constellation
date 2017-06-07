@@ -7,12 +7,12 @@ module Constellation.Enclave.Types where
 import ClassyPrelude
 import Data.Aeson (FromJSON(parseJSON))
 import Data.Binary (Binary(put, get))
+import Data.ByteArray.Encoding (Base(Base64), convertToBase)
 import Data.Hashable (Hashable(hashWithSalt))
 import Data.Maybe (fromJust)
 import qualified Crypto.Saltine.Class as S
 import qualified Crypto.Saltine.Core.Box as Box
 import qualified Data.Aeson as AE
-import qualified Data.ByteString.Base64 as B64
 
 import Constellation.Util.ByteString (b64TextDecodeBs)
 
@@ -20,7 +20,8 @@ newtype PublicKey = PublicKey { unPublicKey :: Box.PublicKey }
                   deriving (Eq)
 
 instance Show PublicKey where
-    show (PublicKey pub) = show $ B64.encode $ S.encode pub
+    show (PublicKey pub) =
+        show (convertToBase Base64 (S.encode pub) :: ByteString)
 
 instance Binary PublicKey where
     put = put . S.encode . unPublicKey

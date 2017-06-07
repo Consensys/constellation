@@ -27,6 +27,7 @@ library
                        Constellation.Node.Config
                        Constellation.Node.Main
                        Constellation.Node.Storage.BerkeleyDb
+                       Constellation.Node.Storage.Directory
                        -- Constellation.Node.Storage.LevelDb
                        Constellation.Node.Storage.Memory
                        -- Constellation.Node.Storage.Sqlite
@@ -37,7 +38,6 @@ library
                        Constellation.Util.Exception
                        Constellation.Util.Lockable
                        Constellation.Util.Logging
-                       Constellation.Util.Memory
                        Constellation.Util.Network
                        Constellation.Util.String
                        Constellation.Util.Text
@@ -47,7 +47,6 @@ library
                      , aeson >= 0.11
                      , async >= 2.1
                      , auto-update >= 0.1.4
-                     , base64-bytestring >= 1.0.0.1
                      , BerkeleyDB >= 0.8.7
                      , binary >= 0.8.3
                      , byteable >= 0.1.1
@@ -101,6 +100,7 @@ test-suite constellation-test
                        Constellation.Node.Main.Test
                        Constellation.Node.Storage.BerkeleyDb.Test
                        -- Constellation.Node.Storage.LevelDb.Test
+                       Constellation.Node.Storage.Directory.Test
                        Constellation.Node.Storage.Memory.Test
                        -- Constellation.Node.Storage.Sqlite.Test
                        Constellation.Node.Storage.TestUtil
@@ -112,7 +112,6 @@ test-suite constellation-test
                        Constellation.Util.Exception.Test
                        Constellation.Util.Lockable.Test
                        Constellation.Util.Logging.Test
-                       Constellation.Util.Memory.Test
                        Constellation.Util.Network.Test
                        Constellation.Util.String.Test
                        Constellation.Util.Text.Test

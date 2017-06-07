@@ -27,6 +27,7 @@ import Constellation.Enclave.Key (mustLoadKeyPairs, mustLoadPublicKeys)
 import Constellation.Enclave.Keygen.Main (generateKeyPair)
 import Constellation.Node (newNode, runNode)
 import Constellation.Node.Storage.BerkeleyDb (berkeleyDbStorage)
+import Constellation.Node.Storage.Directory (directoryStorage)
 -- import Constellation.Node.Storage.Memory (memoryStorage)
 import Constellation.Node.Types
     ( Node(nodeStorage)
@@ -86,7 +87,10 @@ run cfg@Config{..} = do
             }
     ast <- mustLoadPublicKeys cfgAlwaysSendTo
     logf' "Initializing storage {}" [cfgStorage]
-    storage <- berkeleyDbStorage cfgStorage
+    storage <- case break (== ':') cfgStorage of
+        ("bdb", ':':s) -> berkeleyDbStorage s
+        ("dir", ':':s) -> directoryStorage s
+        _              -> berkeleyDbStorage cfgStorage  -- Default
     -- storage <- memoryStorage
     nvar    <- newTVarIO =<<
         newNode crypt storage cfgUrl (map fst ks) ast cfgOtherNodes
