@@ -35,7 +35,7 @@ testStorage storage testName = \step -> do
     step "Verify deletion"
     ver <- loadPayload storage key
     case ver of
-        Left err -> "Key not found in " `isInfixOf` err @? testName ++ ": Key still present"
+        Left err -> "Payload not found in " `isInfixOf` err @? testName ++ ": Key still present"
         Right _  -> error $ testName ++ ": Deletion of payload failed"
     step "Cleaning up"
     closeStorage storage

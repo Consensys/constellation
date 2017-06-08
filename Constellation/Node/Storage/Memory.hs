@@ -41,7 +41,7 @@ load :: Db -> Text -> IO (Either String (EncryptedPayload, [PublicKey]))
 load mvar k = atomically $ do
     m <- readTVar mvar
     return $ case HM.lookup k m of
-        Nothing -> Left "Key not found in memory database"
+        Nothing -> Left "Payload not found in memory database"
         Just v  -> Right v
 
 delete :: Db -> Text -> IO ()

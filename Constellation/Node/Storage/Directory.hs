@@ -56,7 +56,7 @@ load' :: FilePath
 load' dir fname = do
     ex <- trys $ decode <$> BL.readFile (dir </> "payloads" </> fname)
     return $ case ex of
-        Left err -> Left $ "Key not found in directory " ++ dir ++ ": " ++ err
+        Left err -> Left $ "Payload not found in directory " ++ dir ++ ": " ++ err
         Right x  -> Right x
 
 delete :: FilePath -> Text -> IO ()

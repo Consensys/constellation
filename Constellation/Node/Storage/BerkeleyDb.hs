@@ -116,7 +116,7 @@ load :: Db
 load db mtx k = do
     mv <- db_get [DB_READ_UNCOMMITTED] db mtx (TE.encodeUtf8 k)
     return $ case mv of
-        Nothing -> Left "Key not found in BerkeleyDb payload.db"
+        Nothing -> Left "Payload not found in BerkeleyDb payload.db"
         Just v  -> Right $ decode $ BL.fromStrict v
 
 delete :: Db

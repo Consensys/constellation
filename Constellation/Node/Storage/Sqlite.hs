@@ -74,8 +74,8 @@ load c k = do
         -- []       -> Left "load: No payload found"
         -- _        -> Left "load: More than one payload found"
         -- TODO: In testStorage, don't rely on the presence of the strings below
-        []       -> Left "Key not found in SQLite"
-        _        -> Left "Key not found in SQLite"
+        []       -> Left "Payload not found in SQLite"
+        _        -> Left "Payload not found in SQLite"
 
 delete :: Connection -> Text -> IO ()
 delete c k = void $

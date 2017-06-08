@@ -43,7 +43,7 @@ save db x@(EncryptedPayload{..}, _) =
 
 load :: L.DB -> Text -> IO (Either String (EncryptedPayload, [PublicKey]))
 load db = L.get db def . TE.encodeUtf8 >=> \mv -> return $ case mv of
-    Nothing -> Left "Key not found in LevelDB"
+    Nothing -> Left "Payload not found in LevelDB"
     Just v  -> Right $ decode $ BL.fromStrict v
 
 delete :: L.DB -> Text -> IO ()
