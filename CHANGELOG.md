@@ -8,9 +8,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Added
 - A `dir` storage engine which stores payloads as individual files in
-  a folder, suitable for use with FUSE connectors. (Note that any
-  distributed file system must have strong read-after-create
-  consistency to avoid unexpected behavior.)
+  a folder, suitable for use with FUSE connectors. (Note that, if used
+  with Quorum and a distributed file system, it should have strong
+  read-after-create consistency to avoid unexpected behavior. In other
+  words, after a file is created, other nodes should immediately be
+  able to read it.)
 
   The `dir` storage engine uses Base32-encoded filenames to ensure
   compatibility with most file systems.
