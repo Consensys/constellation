@@ -4,12 +4,12 @@
 {-# LANGUAGE StrictData #-}
 module Constellation.Node.Storage.LevelDb where
 
-import ClassyPrelude hiding (hash)
+import ClassyPrelude hiding (delete, hash)
 import Control.Monad.Fix (fix)
 import Crypto.Hash (Digest, SHA3_512, hash)
 import Data.Binary (encode, decode)
+import Data.ByteArray.Encoding (Base(Base64), convertToBase)
 import Data.Default (def)
-import qualified Data.ByteString.Base64 as B64
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text.Encoding as TE
 import qualified Database.LevelDB.Base as L
@@ -18,9 +18,7 @@ import qualified Database.LevelDB.Internal as LI
 import Constellation.Enclave.Payload
     (EncryptedPayload(EncryptedPayload, eplCt))
 import Constellation.Enclave.Types (PublicKey)
-import Constellation.Node.Types
-    (Storage(Storage, savePayload, loadPayload, traverseStorage, closeStorage))
-import Constellation.Util.Memory (byteArrayToByteString)
+import Constellation.Node.Types (Storage(..))
 
 levelDbStorage :: FilePath -> IO Storage
 levelDbStorage fpath = do
@@ -30,6 +28,7 @@ levelDbStorage fpath = do
     return Storage
         { savePayload     = save db
         , loadPayload     = load db
+        , deletePayload   = delete db
         , traverseStorage = trav db
         , closeStorage    = LI.unsafeClose db
         }
@@ -40,12 +39,15 @@ save db x@(EncryptedPayload{..}, _) =
     L.put db def dig (BL.toStrict $ encode x) >>
     return (Right $ TE.decodeUtf8 dig)
   where
-    dig = B64.encode $ byteArrayToByteString (hash eplCt :: Digest SHA3_512)
+    dig = convertToBase Base64 (hash eplCt :: Digest SHA3_512)
 
 load :: L.DB -> Text -> IO (Either String (EncryptedPayload, [PublicKey]))
 load db = L.get db def . TE.encodeUtf8 >=> \mv -> return $ case mv of
-    Nothing -> Left "Key not found in LevelDB"
+    Nothing -> Left "Payload not found in LevelDB"
     Just v  -> Right $ decode $ BL.fromStrict v
+
+delete :: L.DB -> Text -> IO ()
+delete db = L.delete db def . TE.encodeUtf8
 
 trav :: L.DB -> (Text -> (EncryptedPayload, [PublicKey]) -> IO Bool) -> IO ()
 trav db f = L.withIter db def $ \it -> fix $ \loop -> do

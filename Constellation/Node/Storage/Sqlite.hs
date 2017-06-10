@@ -5,25 +5,23 @@
 {-# LANGUAGE StrictData #-}
 module Constellation.Node.Storage.Sqlite where
 
-import ClassyPrelude hiding (fold, hash)
+import ClassyPrelude hiding (fold, delete, hash)
 import Control.Monad (void)
 import Crypto.Hash (Digest, SHA3_512, hash)
 import Data.Binary (encode, decode)
-import Data.Pool (createPool, withResource)
+import Data.ByteArray.Encoding (Base(Base64), convertToBase)
+import Data.Pool (createPool, withResource, destroyAllResources)
 import Database.SQLite.Simple
     (Connection, Query, Only(..), open, close, execute, execute_, query, fold_)
 import System.Directory (doesFileExist)
 import qualified Data.ByteString.Lazy as BL
-import qualified Data.ByteString.Base64 as B64
 import qualified Data.Text.Encoding as TE
 import qualified Text.RawString.QQ as QQ
 
 import Constellation.Enclave.Payload
     (EncryptedPayload(EncryptedPayload, eplCt))
 import Constellation.Enclave.Types (PublicKey)
-import Constellation.Node.Types
-    (Storage(Storage, savePayload, loadPayload, deletePayload, traverseStorage))
-import Constellation.Util.Memory (byteArrayToByteString)
+import Constellation.Node.Types (Storage(..))
 
 createStmts :: [Query]
 createStmts =
@@ -54,12 +52,12 @@ sqliteStorage fpath = do
         , loadPayload     = \k   -> withResource p $ \c -> load c k
         , deletePayload   = \k   -> withResource p $ \c -> delete c k
         , traverseStorage = \f   -> withResource p $ \c -> trav c f
+        , closeStorage    = destroyAllResources p
         }
 
 save :: Connection -> (EncryptedPayload, [PublicKey]) -> IO (Either String Text)
 save c x@(EncryptedPayload{..}, _) = do
-    let dig = TE.decodeUtf8 $ B64.encode $
-            byteArrayToByteString (hash eplCt :: Digest SHA3_512)
+    let dig = TE.decodeUtf8 $ convertToBase Base64 (hash eplCt :: Digest SHA3_512)
     -- TODO: Error out when the key already exists (collisions)
     execute c
         "INSERT INTO payload (payloadKey, payloadBytes) VALUES (?, ?)"
@@ -73,8 +71,11 @@ load c k = do
         (Only k)
     return $ case rs of
         [Only b] -> Right $ decode $ BL.fromStrict b
-        []       -> Left "load: No payload found"
-        _        -> Left "load: More than one payload found"
+        -- []       -> Left "load: No payload found"
+        -- _        -> Left "load: More than one payload found"
+        -- TODO: In testStorage, don't rely on the presence of the strings below
+        []       -> Left "Payload not found in SQLite"
+        _        -> Left "Payload not found in SQLite"
 
 delete :: Connection -> Text -> IO ()
 delete c k = void $

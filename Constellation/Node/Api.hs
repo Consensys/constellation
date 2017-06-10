@@ -9,6 +9,7 @@ import Control.Monad (void)
 import Data.Aeson
     (FromJSON(parseJSON), ToJSON(toJSON), Value(Object), (.:), (.=), object)
 import Data.Binary (encode, decodeOrFail)
+import Data.ByteArray.Encoding (Base(Base64), convertToBase)
 import Data.HashMap.Strict ((!))
 import Data.IP (IP(IPv4, IPv6), toHostAddress, toHostAddress6)
 import Data.Maybe (fromJust)
@@ -20,7 +21,6 @@ import Network.Socket
     (SockAddr(SockAddrInet, SockAddrInet6), HostAddress, HostAddress6)
 import Text.Read (read)
 import qualified Data.Aeson as AE
-import qualified Data.ByteString.Base64 as B64
 import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.HashMap.Strict as HM
@@ -76,7 +76,7 @@ data ReceiveResponse = ReceiveResponse
 
 instance ToJSON ReceiveResponse where
     toJSON ReceiveResponse{..} = object
-        [ "payload" .= TE.decodeUtf8 (B64.encode rresPayload)
+        [ "payload" .= TE.decodeUtf8 (convertToBase Base64 rresPayload)
         ]
 
 data Delete = Delete

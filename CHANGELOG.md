@@ -5,6 +5,27 @@ All major changes to Constellation will be recorded here.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+### Added
+- A `dir` storage engine which stores payloads as individual files in
+  a folder, suitable for use with FUSE connectors. (Note that, if used
+  with Quorum and a distributed file system, it should have strong
+  read-after-create consistency to avoid unexpected behavior. In other
+  words, after a file is created, other nodes should immediately be
+  able to read it.)
+
+  The `dir` storage engine uses Base32-encoded filenames to ensure
+  compatibility with most file systems.
+
+- Ability to choose a storage engine in configs and on the command
+  line:
+    - `--storage=dir:path`: `dir` storage engine using the `path`
+      folder.
+    - `--storage=bdb:path`: `bdb` storage engine using the `path`
+      folder.
+    - `--storage=path`: Default storage engine (`bdb`) using the
+      `path` folder.
+
 ## [0.1.0] - 2017-06-06
 
 This release includes changes to the configuration file

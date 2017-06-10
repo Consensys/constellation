@@ -8,10 +8,10 @@ module Constellation.Enclave.Key where
 import Prelude (putStrLn)
 import ClassyPrelude hiding (hash, putStrLn)
 import Control.Monad.Trans.Either (EitherT(EitherT), runEitherT)
+import Data.ByteArray.Encoding (Base(Base64), convertToBase)
 import qualified Crypto.Saltine.Class as S
 import qualified Crypto.Saltine.Core.Box as Box
 import qualified Data.Aeson as AE
-import qualified Data.ByteString.Base64.Lazy as B64L
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text as T
 
@@ -27,8 +27,8 @@ newKeyPair = do
     (priv, pub) <- Box.newKeypair
     return (PublicKey pub, priv)
 
-b64EncodePublicKey :: PublicKey -> BL.ByteString
-b64EncodePublicKey = B64L.encode . BL.fromStrict . S.encode . unPublicKey
+b64EncodePublicKey :: PublicKey -> ByteString
+b64EncodePublicKey = convertToBase Base64 . S.encode . unPublicKey
 
 -- | Optionally takes a password to lock the private key.
 jsonEncodePrivateKey :: Maybe String -> Box.SecretKey -> IO BL.ByteString

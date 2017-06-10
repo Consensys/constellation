@@ -8,9 +8,9 @@ import ClassyPrelude hiding (delete, hash)
 import Control.Logging (warn, warnS)
 import Crypto.Hash (Digest, SHA3_512, hash)
 import Data.Binary (encode, decode)
+import Data.ByteArray.Encoding (Base(Base64), convertToBase)
 import Database.Berkeley.Db
 import System.Directory (createDirectoryIfMissing)
-import qualified Data.ByteString.Base64 as B64
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
@@ -21,7 +21,6 @@ import Constellation.Enclave.Types (PublicKey)
 import Constellation.Node.Types
     (Storage(Storage, savePayload, loadPayload, deletePayload,
              traverseStorage, closeStorage))
-import Constellation.Util.Memory (byteArrayToByteString)
 
 berkeleyDbStorage :: FilePath -> IO Storage
 berkeleyDbStorage fpath = do
@@ -108,7 +107,7 @@ save db mtx x@(EncryptedPayload{..}, _) =
     db_put [] db mtx dig (BL.toStrict $ encode x) >>
     return (Right $ TE.decodeUtf8 dig)
   where
-    dig = B64.encode $ byteArrayToByteString (hash eplCt :: Digest SHA3_512)
+    dig = convertToBase Base64 (hash eplCt :: Digest SHA3_512) :: ByteString
 
 load :: Db
      -> Maybe DbTxn
@@ -117,7 +116,7 @@ load :: Db
 load db mtx k = do
     mv <- db_get [DB_READ_UNCOMMITTED] db mtx (TE.encodeUtf8 k)
     return $ case mv of
-        Nothing -> Left "Key not found in BerkeleyDb payload.db"
+        Nothing -> Left "Payload not found in BerkeleyDb payload.db"
         Just v  -> Right $ decode $ BL.fromStrict v
 
 delete :: Db

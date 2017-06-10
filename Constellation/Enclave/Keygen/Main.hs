@@ -8,6 +8,7 @@ import ClassyPrelude hiding (getArgs, writeFile)
 import System.Console.Haskeline (runInputT, defaultSettings, getPassword)
 import System.Environment (getArgs, getProgName)
 import Text.Printf (printf)
+import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 
 import Constellation.Enclave.Key
@@ -24,7 +25,7 @@ generateKeyPair name = do
     mpwd <- runInputT defaultSettings $
         getPassword (Just '*') (printf "Lock key pair %s with password [none]: " name)
     (pub, priv) <- newKeyPair
-    BL.writeFile (name ++ ".pub") $ b64EncodePublicKey pub
+    B.writeFile (name ++ ".pub") $ b64EncodePublicKey pub
     json <- jsonEncodePrivateKey mpwd priv
     BL.writeFile (name ++ ".key") json
 
