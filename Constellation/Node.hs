@@ -5,6 +5,7 @@
 module Constellation.Node where
 
 import ClassyPrelude
+import Control.Exception (evaluate)
 import Data.Binary (encode, decode)
 import Network.HTTP.Conduit ( RequestBody(RequestBodyLBS)
                             , newManager, managerConnCount, tlsManagerSettings
@@ -98,7 +99,7 @@ getRemotePartyInfo nvar url = trys $ do
             }
     res <- httpLbs req' nodeManager
     logf "Finished synchronization with {}" [url]
-    return $ decode $ responseBody res
+    evaluate $ decode (responseBody res)
 
 mergePartyInfos :: TVar Node -> [PartyInfo] -> STM ()
 mergePartyInfos nvar pinfos = modifyTVar nvar $ \node ->
