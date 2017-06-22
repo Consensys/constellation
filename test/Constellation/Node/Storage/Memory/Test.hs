@@ -16,6 +16,6 @@ tests = testGroup "Node.Storage.Memory"
 
 testMemory :: TestTree
 testMemory = testCaseSteps "storage" $ \step -> do
-    step "Setting up memory instance"
+    step "Setting up Memory instance"
     storage <- memoryStorage
     testStorage storage "testMemory" step        

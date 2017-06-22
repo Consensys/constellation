@@ -28,9 +28,9 @@ library
                        Constellation.Node.Main
                        Constellation.Node.Storage.BerkeleyDb
                        Constellation.Node.Storage.Directory
-                       -- Constellation.Node.Storage.LevelDb
+                       Constellation.Node.Storage.LevelDb
                        Constellation.Node.Storage.Memory
-                       -- Constellation.Node.Storage.Sqlite
+                       Constellation.Node.Storage.Sqlite
                        Constellation.Node.Types
                        Constellation.Util.AtExit
                        Constellation.Util.ByteString
@@ -66,17 +66,17 @@ library
                      , http-types
                      , iproute >= 1.7
                      -- , lens
-                     -- , leveldb-haskell
+                     , leveldb-haskell >= 0.6.5
                      , logging >= 3.0.4
                      , memory >= 0.13
                      , network >= 2.6.3.1
                      , network-uri >= 2.6.1.0
                      , random >= 1.1
                      , raw-strings-qq >= 1.1
-                     -- , resource-pool
+                     , resource-pool >= 0.2.3.2
                      , saltine >= 0.0.0.4
                      , split >= 0.2.3.1
-                     -- , sqlite-simple
+                     , sqlite-simple >= 0.4.13.0
                      , text >= 1.2.2.1
                      , text-format >= 0.3.1.1
                      , unordered-containers >= 0.2.7.1
@@ -99,10 +99,10 @@ test-suite constellation-test
                        Constellation.Node.Config.Test
                        Constellation.Node.Main.Test
                        Constellation.Node.Storage.BerkeleyDb.Test
-                       -- Constellation.Node.Storage.LevelDb.Test
+                       Constellation.Node.Storage.LevelDb.Test
                        Constellation.Node.Storage.Directory.Test
                        Constellation.Node.Storage.Memory.Test
-                       -- Constellation.Node.Storage.Sqlite.Test
+                       Constellation.Node.Storage.Sqlite.Test
                        Constellation.Node.Storage.TestUtil
                        Constellation.Node.Types.Test
                        Constellation.TestUtil

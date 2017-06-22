@@ -20,4 +20,4 @@ testBerkeleyDb = testCaseSteps "storage" $ \step ->
     withSystemTempDirectory "constellation-test-XXX" $ \tempDir-> do
         step "Setting up BerkeleyDb instance"
         storage <- berkeleyDbStorage tempDir
-        testStorage storage "testBerkelyDb" step        
+        testStorage storage "testBerkeleyDb" step

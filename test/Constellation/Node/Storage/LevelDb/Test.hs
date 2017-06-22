@@ -3,6 +3,7 @@
 module Constellation.Node.Storage.LevelDb.Test where
 
 import ClassyPrelude
+import System.IO.Temp (withSystemTempDirectory)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (testCaseSteps)
 
@@ -16,6 +17,7 @@ tests = testGroup "Node.Storage.LevelDb"
 
 testLevelDb :: TestTree
 testLevelDb = testCaseSteps "storage" $ \step -> do
-    step "Setting up LevelDb instance"
-    storage <- levelDbStorage "constellation-test-leveldb"
-    testStorage storage "testLevelDb" step
+    withSystemTempDirectory "constellation-test-XXX" $ \tempDir-> do
+        step "Setting up LevelDB instance"
+        storage <- levelDbStorage tempDir
+        testStorage storage "testLevelDb" step

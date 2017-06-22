@@ -27,15 +27,15 @@ createStmts :: [Query]
 createStmts =
     [ [QQ.r|
 CREATE TABLE cfg
-    ( cfgName  TEXT
-    , cfgValue TEXT
+    ( name  TEXT
+    , value TEXT
     )
 |]
-    , "INSERT INTO cfg (cfgName, cfgValue) VALUES ('dbVersion', '1')"
+    , "INSERT INTO cfg (name, value) VALUES ('dbVersion', '1')"
     , [QQ.r|
 CREATE TABLE payload
-    ( payloadKey   TEXT PRIMARY KEY
-    , payloadBytes BLOB
+    ( key   TEXT PRIMARY KEY
+    , bytes BLOB
     )
 |]
     ]
@@ -60,14 +60,14 @@ save c x@(EncryptedPayload{..}, _) = do
     let dig = TE.decodeUtf8 $ convertToBase Base64 (hash eplCt :: Digest SHA3_512)
     -- TODO: Error out when the key already exists (collisions)
     execute c
-        "INSERT INTO payload (payloadKey, payloadBytes) VALUES (?, ?)"
+        "INSERT INTO payload (key, bytes) VALUES (?, ?)"
         (dig, encode x)
     return $ Right dig
 
 load :: Connection -> Text -> IO (Either String (EncryptedPayload, [PublicKey]))
 load c k = do
     rs <- query c
-        "SELECT payloadBytes FROM payload WHERE payloadKey = ? LIMIT 1"
+        "SELECT bytes FROM payload WHERE key = ? LIMIT 1"
         (Only k)
     return $ case rs of
         [Only b] -> Right $ decode $ BL.fromStrict b
@@ -80,12 +80,12 @@ load c k = do
 delete :: Connection -> Text -> IO ()
 delete c k = void $
     execute c
-        "DELETE FROM payload WHERE payloadKey = ?"
+        "DELETE FROM payload WHERE key = ?"
         (Only k)
 
 trav :: Connection -> (Text -> (EncryptedPayload, [PublicKey]) -> IO Bool) -> IO ()
 trav c f = void $ fold_ c
-    "SELECT payloadKey, payloadBytes FROM payload ORDER BY payloadKey DESC"
+    "SELECT key, bytes FROM payload ORDER BY key DESC"
     True go
   where
     go False _      = return False
