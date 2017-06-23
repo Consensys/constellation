@@ -33,7 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
       folder.
     - `--storage=leveldb:path`: `leveldb` storage engine using the `path`
       folder.
-    - `--storage=memory`: `memory` storage engine.
+    - `--storage=memory`: non-persistent `memory` storage engine.
     - `--storage=sqlite:path`: `sqlite` storage engine using the `path`
       folder.
     - `--storage=path`: Default storage engine (`bdb`) using the
