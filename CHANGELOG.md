@@ -17,11 +17,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   The `dir` storage engine uses Base32-encoded filenames to ensure
   compatibility with most file systems.
 
+- (Experimental) A 'sqlite' storage engine. See related discussion at
+  https://github.com/jpmorganchase/constellation/issues/37
+
+- (Experimental) A 'leveldb' storage engine. See related discussion at
+  https://github.com/jpmorganchase/constellation/issues/37
+
+- A non-persistent 'memory' storage engine.
+
 - Ability to choose a storage engine in configs and on the command
   line:
+    - `--storage=bdb:path`: `bdb` storage engine using the `path`
+      folder.
     - `--storage=dir:path`: `dir` storage engine using the `path`
       folder.
-    - `--storage=bdb:path`: `bdb` storage engine using the `path`
+    - `--storage=leveldb:path`: `leveldb` storage engine using the `path`
+      folder.
+    - `--storage=memory`: non-persistent `memory` storage engine.
+    - `--storage=sqlite:path`: `sqlite` storage engine using the `path`
       folder.
     - `--storage=path`: Default storage engine (`bdb`) using the
       `path` folder.

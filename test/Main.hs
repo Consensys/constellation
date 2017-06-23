@@ -20,9 +20,9 @@ import qualified Constellation.Node.Config.Test as NodeConfig
 import qualified Constellation.Node.Main.Test as NodeMain
 import qualified Constellation.Node.Storage.BerkeleyDb.Test as NodeStorageBerkeley
 import qualified Constellation.Node.Storage.Directory.Test as NodeStorageDirectory
--- import qualified Constellation.Node.Storage.LevelDb.Test as NodeStorageLevelDb
+import qualified Constellation.Node.Storage.LevelDb.Test as NodeStorageLevelDb
 import qualified Constellation.Node.Storage.Memory.Test as NodeStorageMemory
--- import qualified Constellation.Node.Storage.Sqlite.Test as NodeStorageSqlite
+import qualified Constellation.Node.Storage.Sqlite.Test as NodeStorageSqlite
 import qualified Constellation.Node.Types.Test as NodeTypes
 import qualified Constellation.Util.AtExit.Test as UtilAtExit
 import qualified Constellation.Util.ByteString.Test as UtilByteString
@@ -46,9 +46,9 @@ tests = testGroup ""
     , NodeMain.tests
     , NodeStorageBerkeley.tests
     , NodeStorageDirectory.tests
-    -- , NodeStorageLevelDb.tests
+    , NodeStorageLevelDb.tests
     , NodeStorageMemory.tests
-    -- , NodeStorageSqlite.tests
+    , NodeStorageSqlite.tests
     , NodeTypes.tests
     , UtilAtExit.tests
     , UtilByteString.tests

@@ -17,7 +17,7 @@ tests = testGroup "Node.Storage.Directory"
 
 testDirectory :: TestTree
 testDirectory = testCaseSteps "storage" $ \step ->
-    withSystemTempDirectory "constellation-test-storage-directory-XXX" $ \tempDir -> do
-        step "Setting up directory instance"
+    withSystemTempDirectory "constellation-test-XXX" $ \tempDir -> do
+        step "Setting up Directory instance"
         storage <- directoryStorage tempDir
         testStorage storage "testDirectory" step        

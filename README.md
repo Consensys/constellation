@@ -12,9 +12,9 @@ Agents (MTAs) exchanging PGP-encrypted emails.
 ### Prerequisites
 
   1. Install supporting libraries:
-    - Ubuntu: `apt-get install libdb-dev libsodium-dev zlib1g-dev libtinfo-dev`
-    - Red Hat: `dnf install libdb-devel libsodium-devel zlib-devel ncurses-devel`
-    - MacOS: `brew install berkeley-db libsodium`
+    - Ubuntu: `apt-get install libdb-dev libleveldb-dev libsodium-dev zlib1g-dev libtinfo-dev`
+    - Red Hat: `dnf install libdb-devel leveldb-devel libsodium-devel zlib-devel ncurses-devel`
+    - MacOS: `brew install berkeley-db leveldb libsodium`
 
 ### Downloading precompiled binaries
 

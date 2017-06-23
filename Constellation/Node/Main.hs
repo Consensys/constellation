@@ -28,7 +28,9 @@ import Constellation.Enclave.Keygen.Main (generateKeyPair)
 import Constellation.Node (newNode, runNode)
 import Constellation.Node.Storage.BerkeleyDb (berkeleyDbStorage)
 import Constellation.Node.Storage.Directory (directoryStorage)
--- import Constellation.Node.Storage.Memory (memoryStorage)
+import Constellation.Node.Storage.LevelDb (levelDbStorage)
+import Constellation.Node.Storage.Memory (memoryStorage)
+import Constellation.Node.Storage.Sqlite (sqliteStorage)
 import Constellation.Node.Types
     ( Node(nodeStorage)
     , Crypt(Crypt, encryptPayload, decryptPayload)
@@ -36,7 +38,7 @@ import Constellation.Node.Types
     )
 import Constellation.Node.Config (Config(..), extractConfig)
 import Constellation.Util.AtExit (registerAtExit, withAtExit)
-import Constellation.Util.Logging (debugf', logf')
+import Constellation.Util.Logging (debugf', logf', warnf)
 import qualified Constellation.Node.Api as NodeApi
 
 version :: Text
@@ -87,11 +89,16 @@ run cfg@Config{..} = do
             }
     ast <- mustLoadPublicKeys cfgAlwaysSendTo
     logf' "Initializing storage {}" [cfgStorage]
+    let experimentalStorageCaveat s = warnf "The {} storage engine is experimental. It may be removed or changed at any time. Please see the discussion at https://github.com/jpmorganchase/constellation/issues/37" [s :: Text]
     storage <- case break (== ':') cfgStorage of
-        ("bdb", ':':s) -> berkeleyDbStorage s
-        ("dir", ':':s) -> directoryStorage s
-        _              -> berkeleyDbStorage cfgStorage  -- Default
-    -- storage <- memoryStorage
+        ("bdb",     ':':path) -> berkeleyDbStorage path
+        ("dir",     ':':path) -> directoryStorage path
+        ("leveldb", ':':path) -> experimentalStorageCaveat "LevelDB"
+            >> levelDbStorage path
+        ("memory",  _       ) -> memoryStorage
+        ("sqlite",  ':':path) -> experimentalStorageCaveat "SQLite"
+            >> sqliteStorage path
+        _                     -> berkeleyDbStorage cfgStorage  -- Default
     nvar    <- newTVarIO =<<
         newNode crypt storage cfgUrl (map fst ks) ast cfgOtherNodes
     _ <- forkIO $ do

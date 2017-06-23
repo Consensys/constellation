@@ -3,6 +3,7 @@
 module Constellation.Node.Storage.Sqlite.Test where
 
 import ClassyPrelude
+import System.IO.Temp (withSystemTempDirectory)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (testCaseSteps)
 
@@ -16,6 +17,7 @@ tests = testGroup "Node.Storage.Sqlite"
 
 testSqlite :: TestTree
 testSqlite = testCaseSteps "storage" $ \step -> do
-    step "Setting up sqlite instance"
-    storage <- sqliteStorage "constellation-test-sqlite"
-    testStorage storage "testSqlite" step
+    withSystemTempDirectory "constellation-test-XXX" $ \tempDir-> do
+        step "Setting up SQLite instance"
+        storage <- sqliteStorage (tempDir </> "test.db")
+        testStorage storage "testSqlite" step
