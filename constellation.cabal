@@ -36,6 +36,7 @@ library
                        Constellation.Util.ByteString
                        Constellation.Util.Either
                        Constellation.Util.Exception
+                       Constellation.Util.HttpConduit
                        Constellation.Util.Lockable
                        Constellation.Util.Logging
                        Constellation.Util.Network

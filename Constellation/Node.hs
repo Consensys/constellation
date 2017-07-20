@@ -24,6 +24,7 @@ import Constellation.Enclave.Payload
 import Constellation.Enclave.Types (PublicKey(PublicKey, unPublicKey))
 import Constellation.Node.Types
 import Constellation.Util.Exception (trys)
+import Constellation.Util.HttpConduit (httpLbsRetryTimeouts)
 import Constellation.Util.Logging (logf)
 
 newNode :: Crypt
@@ -163,7 +164,8 @@ propagatePayload' Node{..} epl rcpts =
                           { eplRcptBoxes = [rcptBox]
                           }
                     }
-            res <- httpLbs req' nodeManager
+            -- TODO: Make timeout periods and retry attempts configurable
+            res <- httpLbsRetryTimeouts req' nodeManager 5
             return $ TE.decodeUtf8 $ BL.toStrict $ responseBody res
 
 receivePayload :: Node -> Text -> PublicKey -> IO (Either String ByteString)
