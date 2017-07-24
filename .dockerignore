@@ -1,0 +1,7 @@
+.git
+.gitignore
+.stack-work
+.idea
+.ideaHaskellLib
+.DS_Store
+constellation.iml

@@ -1,0 +1,11 @@
+sudo: required
+
+services:
+    - docker
+
+env:
+    - DOCKERFILE=build-deb.dockerfile
+    - DOCKERFILE=build-rpm.dockerfile
+
+before_install:
+    - docker build -f $DOCKERFILE .
