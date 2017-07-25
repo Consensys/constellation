@@ -1,15 +1,17 @@
-FROM ubuntu:trusty
+#
+# Eventually this chould be parameterized, where the base image can be specified
+# for *any* rpm-based distro.
+#
+# OR we might want to just have multiple FROM statements.
+#
+FROM fedora:26
 
-RUN apt-get update
+RUN dnf -y update
 
-RUN apt-get install -y curl && \
-    curl -sSL https://get.haskellstack.org/ | sh
+RUN curl -sSL https://get.haskellstack.org/ | sh
 
-RUN apt-get install -y software-properties-common && \
-    add-apt-repository ppa:chris-lea/libsodium && \
-    apt-get update && \
-    apt-get install -y libdb-dev libleveldb-dev libsodium-dev zlib1g-dev libtinfo-dev && \
-    apt-get install -y ruby ruby-dev build-essential && \
+RUN dnf -y install gcc-c++ libdb-devel leveldb-devel libsodium-devel zlib-devel ncurses-devel && \
+    dnf -y install redhat-rpm-config rpmdevtools ruby rubygems ruby-devel && \
     gem install --no-ri --no-rdoc fpm
 
 # CONSTELLATION BUILD. If you modify this, change the other dockerfiles too.
@@ -32,9 +34,11 @@ RUN stack install --local-bin-path /usr/local/bin --test
 
 # END constellation build.
 
-RUN fpm -t deb --deb-changelog CHANGELOG.md -d libdb-dev -d libleveldb-dev -d libsodium-dev -d zlib1g-dev -d libtinfo-dev \
+# FIXME: This flag is currently causing a failure: --rpm-changelog CHANGELOG.md
+RUN fpm -t rpm -d libdb-devel -d leveldb-devel -d libsodium-devel -d zlib-devel -d ncurses-devel \
         -s dir \
         -n constellation \
+        -p fedora.rpm \
         -v "$(cat constellation.cabal | grep '^version:' | awk '{print $2}')" \
         --description "$(cat constellation.cabal | grep '^description:' | sed 's/description: *//')" \
         --url "https://github.com/jpmorganchase/constellation" \

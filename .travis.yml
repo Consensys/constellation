@@ -1,11 +1,31 @@
 sudo: required
 
 services:
-    - docker
+  - docker
 
 env:
-    - DOCKERFILE=build-deb.dockerfile
-    - DOCKERFILE=build-rpm.dockerfile
+  global:
+    - BUILD=${TRAVIS_BUILD_NUMBER}
+    - CACHE_DIR=$HOME/.cache/docker
+  matrix:
+    - TYPE=deb
+      PLATFORM=ubuntu
+    - TYPE=rpm
+      PLATFORM=fedora
 
 before_install:
-    - docker build -f $DOCKERFILE .
+  - if [ -f ${CACHE_DIR}/${PLATFORM}.tar.gz ]; then gunzip -c ${CACHE_DIR}/${PLATFORM}.tar.gz | docker load; fi
+
+install:
+  - docker build -f build-${PLATFORM}.dockerfile -t constellation-${PLATFORM} .
+  - docker save $(docker history -q constellation-${PLATFORM} | grep -v '<missing>') | gzip > ${CACHE_DIR}/${PLATFORM}.tar.gz
+
+before_script:
+  - docker run --name extract-${PLATFORM} -t -d constellation-${PLATFORM} /bin/bash
+  - docker cp extract-${PLATFORM}:/usr/local/src/constellation/${PLATFORM}.${TYPE} ${PLATFORM}.${TYPE}
+  - docker stop extract-${PLATFORM}
+  - if [ -f ${CACHE_DIR}/test-${PLATFORM}.tar.gz ]; then gunzip -c ${CACHE_DIR}/test-${PLATFORM}.tar.gz | docker load; fi
+
+script:
+  - docker build -f test-${PLATFORM}.dockerfile test-${PLATFORM} .
+  - docker save $(docker history -q test-${PLATFORM} | grep -v '<missing>') | gzip > ${CACHE_DIR}/test-${PLATFORM}.tar.gz
