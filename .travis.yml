@@ -13,6 +13,10 @@ env:
     - TYPE=rpm
       PLATFORM=fedora
 
+cache:
+  directories:
+    - $CACHE_DIR
+
 before_install:
   - mkdir -p ${CACHE_DIR}
   - if [ -f ${CACHE_DIR}/${PLATFORM}.tar.gz ]; then gunzip -c ${CACHE_DIR}/${PLATFORM}.tar.gz | docker load; fi
@@ -28,5 +32,5 @@ before_script:
   - if [ -f ${CACHE_DIR}/test-${PLATFORM}.tar.gz ]; then gunzip -c ${CACHE_DIR}/test-${PLATFORM}.tar.gz | docker load; fi
 
 script:
-  - docker build -f test-${PLATFORM}.dockerfile test-${PLATFORM} .
+  - docker build -f test-${PLATFORM}.dockerfile -t test-${PLATFORM} .
   - docker save $(docker history -q test-${PLATFORM} | grep -v '<missing>') | gzip > ${CACHE_DIR}/test-${PLATFORM}.tar.gz
