@@ -14,6 +14,7 @@ env:
       PLATFORM=fedora
 
 before_install:
+  - mkdir -p ${CACHE_DIR}
   - if [ -f ${CACHE_DIR}/${PLATFORM}.tar.gz ]; then gunzip -c ${CACHE_DIR}/${PLATFORM}.tar.gz | docker load; fi
 
 install:
