@@ -1,10 +1,8 @@
-#
-# Eventually this chould be parameterized, where the base image can be specified
-# for *any* rpm-based distro.
-#
-# OR we might want to just have multiple FROM statements.
-#
-FROM fedora:26
+# DISTRO_VERSION can be something like 24, 25, or 26.
+# Supply this using e.g.: --build-arg DISTRO_VERSION=24
+
+ARG DISTRO_VERSION
+FROM fedora:${DISTRO_VERSION}
 
 RUN dnf -y update
 

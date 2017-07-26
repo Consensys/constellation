@@ -1,14 +1,22 @@
-FROM ubuntu:trusty
+# DISTRO_VERSION can be something like "trusty", "xenial", or "zesty".
+# Supply this using e.g.: --build-arg DISTRO_VERSION=trusty
+
+ARG DISTRO_VERSION
+FROM ubuntu:${DISTRO_VERSION}
 
 RUN apt-get update
 
 RUN apt-get install -y curl && \
     curl -sSL https://get.haskellstack.org/ | sh
 
-RUN apt-get install -y software-properties-common && \
-    add-apt-repository ppa:chris-lea/libsodium && \
-    apt-get update && \
-    apt-get install -y libdb-dev libleveldb-dev libsodium-dev zlib1g-dev libtinfo-dev && \
+# We need a PPA for libsodium on trusty:
+RUN bash -c 'if [ "$(lsb_release -sc)" == "trusty" ]; then \
+               apt-get install -y software-properties-common && \
+               add-apt-repository ppa:chris-lea/libsodium && \
+               apt-get update; \
+             fi'
+
+RUN apt-get install -y libdb-dev libleveldb-dev libsodium-dev zlib1g-dev libtinfo-dev && \
     apt-get install -y ruby ruby-dev build-essential && \
     gem install --no-ri --no-rdoc fpm
 

@@ -1,4 +1,5 @@
-FROM fedora:latest
+ARG DISTRO_VERSION
+FROM fedora:${DISTRO_VERSION}
 
 RUN dnf -y update
 

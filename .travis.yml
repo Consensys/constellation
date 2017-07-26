@@ -10,8 +10,22 @@ env:
   matrix:
     - TYPE=deb
       PLATFORM=ubuntu
+      DISTRO_VERSION=trusty
+    - TYPE=deb
+      PLATFORM=ubuntu
+      DISTRO_VERSION=xenial
+    # - TYPE=deb
+    #   PLATFORM=ubuntu
+    #   DISTRO_VERSION=zesty   <-- GHC 8.0.2 isn't building on this atm
     - TYPE=rpm
       PLATFORM=fedora
+      DISTRO_VERSION=24
+    - TYPE=rpm
+      PLATFORM=fedora
+      DISTRO_VERSION=25
+    - TYPE=rpm
+      PLATFORM=fedora
+      DISTRO_VERSION=26
 
 cache:
   directories:
@@ -19,18 +33,18 @@ cache:
 
 before_install:
   - mkdir -p ${CACHE_DIR}
-  - if [ -f ${CACHE_DIR}/${PLATFORM}.tar.gz ]; then gunzip -c ${CACHE_DIR}/${PLATFORM}.tar.gz | docker load; fi
+  - if [ -f ${CACHE_DIR}/${PLATFORM}-${DISTRO_VERSION}.tar.gz ]; then gunzip -c ${CACHE_DIR}/${PLATFORM}-${DISTRO_VERSION}.tar.gz | docker load; fi
 
 install:
-  - docker build -f build-${PLATFORM}.dockerfile -t constellation-${PLATFORM} .
-  - docker save $(docker history -q constellation-${PLATFORM} | grep -v '<missing>') | gzip > ${CACHE_DIR}/${PLATFORM}.tar.gz
+  - docker build -f build-${PLATFORM}.dockerfile --build-arg DISTRO_VERSION=${DISTRO_VERSION} -t ${PLATFORM}-${DISTRO_VERSION} .
+  - docker save $(docker history -q ${PLATFORM}-${DISTRO_VERSION} | grep -v '<missing>') | gzip > ${CACHE_DIR}/${PLATFORM}-${DISTRO_VERSION}.tar.gz
 
 before_script:
-  - docker run --name extract-${PLATFORM} -t -d constellation-${PLATFORM} /bin/bash
+  - docker run --name extract-${PLATFORM} -t -d ${PLATFORM}-${DISTRO_VERSION} /bin/bash
   - docker cp extract-${PLATFORM}:/usr/local/src/constellation/${PLATFORM}.${TYPE} ${PLATFORM}.${TYPE}
   - docker stop extract-${PLATFORM}
-  - if [ -f ${CACHE_DIR}/test-${PLATFORM}.tar.gz ]; then gunzip -c ${CACHE_DIR}/test-${PLATFORM}.tar.gz | docker load; fi
+  - if [ -f ${CACHE_DIR}/test-${PLATFORM}-${DISTRO_VERSION}.tar.gz ]; then gunzip -c ${CACHE_DIR}/test-${PLATFORM}-${DISTRO_VERSION}.tar.gz | docker load; fi
 
 script:
-  - docker build -f test-${PLATFORM}.dockerfile -t test-${PLATFORM} .
-  - docker save $(docker history -q test-${PLATFORM} | grep -v '<missing>') | gzip > ${CACHE_DIR}/test-${PLATFORM}.tar.gz
+  - docker build -f test-${PLATFORM}.dockerfile --build-arg DISTRO_VERSION=${DISTRO_VERSION} -t test-${PLATFORM}-${DISTRO_VERSION} .
+  - docker save $(docker history -q test-${PLATFORM}-${DISTRO_VERSION} | grep -v '<missing>') | gzip > ${CACHE_DIR}/test-${PLATFORM}-${DISTRO_VERSION}.tar.gz
