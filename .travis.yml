@@ -14,9 +14,9 @@ env:
     - TYPE=deb
       PLATFORM=ubuntu
       DISTRO_VERSION=xenial
-    # - TYPE=deb
-    #   PLATFORM=ubuntu
-    #   DISTRO_VERSION=zesty   <-- GHC 8.0.2 isn't building on this atm
+    - TYPE=deb
+      PLATFORM=ubuntu
+      DISTRO_VERSION=zesty
     - TYPE=rpm
       PLATFORM=fedora
       DISTRO_VERSION=24
