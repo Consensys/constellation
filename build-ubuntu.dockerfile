@@ -16,7 +16,7 @@ RUN bash -c 'if [ "$(lsb_release -sc)" == "trusty" ]; then \
                apt-get update; \
              fi'
 
-RUN apt-get install -y libdb-dev libleveldb-dev libsodium-dev zlib1g-dev libtinfo-dev && \
+RUN apt-get install -y libgmp-dev libdb-dev libleveldb-dev libsodium-dev zlib1g-dev libtinfo-dev && \
     apt-get install -y ruby ruby-dev build-essential && \
     gem install --no-ri --no-rdoc fpm
 
@@ -40,7 +40,7 @@ RUN stack install --local-bin-path /usr/local/bin --test
 
 # END constellation build.
 
-RUN fpm -t deb --deb-changelog CHANGELOG.md -d libdb-dev -d libleveldb-dev -d libsodium-dev -d zlib1g-dev -d libtinfo-dev \
+RUN fpm -t deb --deb-changelog CHANGELOG.md -d libgmp-dev -d libdb-dev -d libleveldb-dev -d libsodium-dev -d zlib1g-dev -d libtinfo-dev \
         -s dir \
         -n constellation \
         -p ubuntu.deb \

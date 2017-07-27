@@ -8,7 +8,7 @@ RUN dnf -y update
 
 RUN curl -sSL https://get.haskellstack.org/ | sh
 
-RUN dnf -y install gcc-c++ libdb-devel leveldb-devel libsodium-devel zlib-devel ncurses-devel && \
+RUN dnf -y install gcc-c++ gmp-devel libdb-devel leveldb-devel libsodium-devel zlib-devel ncurses-devel && \
     dnf -y install redhat-rpm-config rpmdevtools ruby rubygems ruby-devel && \
     gem install --no-ri --no-rdoc fpm
 
@@ -33,7 +33,7 @@ RUN stack install --local-bin-path /usr/local/bin --test
 # END constellation build.
 
 # FIXME: This flag is currently causing a failure: --rpm-changelog CHANGELOG.md
-RUN fpm -t rpm -d libdb-devel -d leveldb-devel -d libsodium-devel -d zlib-devel -d ncurses-devel \
+RUN fpm -t rpm -d gmp-devel -d libdb-devel -d leveldb-devel -d libsodium-devel -d zlib-devel -d ncurses-devel \
         -s dir \
         -n constellation \
         -p fedora.rpm \
