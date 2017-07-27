@@ -44,7 +44,7 @@ before_install:
 
 install:
   - docker build -f build-${PLATFORM}.dockerfile --build-arg DISTRO_VERSION=${DISTRO_VERSION} -t ${PLATFORM}-${DISTRO_VERSION} .
-  - docker save $(docker history -q ${PLATFORM}-${DISTRO_VERSION} | grep -v '<missing>') | gzip > ${CACHE_DIR}/${PLATFORM}-${DISTRO_VERSION}.tar.gz
+  - set -o pipefail && docker save $(docker history -q ${PLATFORM}-${DISTRO_VERSION} | grep -v '<missing>') | gzip > ${PLATFORM}-${DISTRO_VERSION}.tar.gz && mv ${PLATFORM}-${DISTRO_VERSION}.tar.gz ${CACHE_DIR}/
 
 before_script:
   - docker run --name extract-${PLATFORM} -t -d ${PLATFORM}-${DISTRO_VERSION} /bin/bash
@@ -54,4 +54,4 @@ before_script:
 
 script:
   - docker build -f test-${PLATFORM}.dockerfile --build-arg DISTRO_VERSION=${DISTRO_VERSION} -t test-${PLATFORM}-${DISTRO_VERSION} .
-  - docker save $(docker history -q test-${PLATFORM}-${DISTRO_VERSION} | grep -v '<missing>') | gzip > ${CACHE_DIR}/test-${PLATFORM}-${DISTRO_VERSION}.tar.gz
+  - set -o pipefail && docker save $(docker history -q test-${PLATFORM}-${DISTRO_VERSION} | grep -v '<missing>') | gzip > test-${PLATFORM}-${DISTRO_VERSION}.tar.gz && mv test-${PLATFORM}-${DISTRO_VERSION}.tar.gz ${CACHE_DIR}/
