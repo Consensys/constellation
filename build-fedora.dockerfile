@@ -32,11 +32,12 @@ RUN stack install --local-bin-path /usr/local/bin --test
 
 # END constellation build.
 
+ARG DISTRO_VERSION
 # FIXME: This flag is currently causing a failure: --rpm-changelog CHANGELOG.md
 RUN fpm -t rpm -d gmp-devel -d libdb-devel -d leveldb-devel -d libsodium-devel -d zlib-devel -d ncurses-devel \
         -s dir \
         -n constellation \
-        -p fedora.rpm \
+        -p fedora-${DISTRO_VERSION}.rpm \
         -v "$(cat constellation.cabal | grep '^version:' | awk '{print $2}')" \
         --description "$(cat constellation.cabal | grep '^description:' | sed 's/description: *//')" \
         --url "https://github.com/jpmorganchase/constellation" \

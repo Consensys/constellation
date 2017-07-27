@@ -11,7 +11,8 @@ RUN bash -c 'if [ "$(lsb_release -sc)" == "trusty" ]; then \
              fi'
 
 WORKDIR /tmp/constellation
-ADD ubuntu.deb /tmp/constellation
-RUN dpkg -i ubuntu.deb; apt-get -y -f install
+ARG DISTRO_VERSION
+ADD ubuntu-${DISTRO_VERSION}.deb /tmp/constellation
+RUN dpkg -i ubuntu-${DISTRO_VERSION}.deb; apt-get -y -f install
 
 RUN constellation-node --version
