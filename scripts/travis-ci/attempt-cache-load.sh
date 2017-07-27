@@ -20,12 +20,12 @@ cache_dir="$2"
 
 #
 
-tarball="${image}.tar.gz"
+tarball="${cache_dir}/${image}.tar.gz"
 
 if [ -f "${tarball}" ]
 then
     echo "loading docker cache from ${tarball}"
-    gunzip -c ${cache_dir}/${tarball} | docker load
+    gunzip -c ${tarball} | docker load
 else
     echo "no cache file found: ${tarball}"
 fi
