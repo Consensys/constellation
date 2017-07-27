@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Upgrades Travis CI's trusty environment to use docker 17.05, which supports using ARG before FROM
 

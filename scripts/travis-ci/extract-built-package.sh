@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Extracts the (e.g. deb, rpm) package built from a dockerfile with the provided image name (e.g. ubuntu-trusty) and package type (e.g. deb)
 

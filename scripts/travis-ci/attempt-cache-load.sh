@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Attempts to load the a previously-saved docker cache tarball for the provided image name from the provided cache directory.
 

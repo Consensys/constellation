@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Saves the docker image with the provided name to the provided cache directory.
 
