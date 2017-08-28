@@ -18,6 +18,7 @@ data Node = Node
     , nodeCrypt        :: Crypt
     , nodeStorage      :: Storage
     , nodeAlwaysSendTo :: [PublicKey]
+    , nodeSelfPub      :: PublicKey
     , nodeManager      :: Manager
     }
 

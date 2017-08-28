@@ -31,9 +31,10 @@ newNode :: Crypt
         -> Text
         -> [PublicKey]
         -> [PublicKey]
+        -> PublicKey
         -> [Text]
         -> IO Node
-newNode crypt storage url rcpts alwaysSendTo parties = do
+newNode crypt storage url rcpts alwaysSendTo selfPub parties = do
     manager <- newManager tlsManagerSettings
         { managerConnCount = 100
         }
@@ -46,6 +47,7 @@ newNode crypt storage url rcpts alwaysSendTo parties = do
         , nodeCrypt        = crypt
         , nodeStorage      = storage
         , nodeAlwaysSendTo = alwaysSendTo
+        , nodeSelfPub      = selfPub
         , nodeManager      = manager
         }
 
@@ -128,7 +130,10 @@ sendPayload :: Node
             -> [PublicKey]
             -> IO [Either String Text]
 sendPayload node@Node{..} pl from initRcpts = do
-    let rcpts = nodeAlwaysSendTo ++ initRcpts
+    let (onlySelf, rcpts) = if null rcptsWithAst
+            then (True, [nodeSelfPub])
+            else (False, rcptsWithAst)
+        rcptsWithAst      = nodeAlwaysSendTo ++ initRcpts
     eenc <- encryptPayload nodeCrypt pl from rcpts
     case eenc of
         Left err  -> return [Left err]
@@ -136,7 +141,9 @@ sendPayload node@Node{..} pl from initRcpts = do
             ek <- savePayload nodeStorage (epl, rcpts)
             case ek of
                 Left err -> return [Left err]
-                Right _  -> propagatePayload' node epl rcpts
+                Right k  -> if onlySelf
+                    then return [Right k]
+                    else propagatePayload' node epl rcpts
 
 propagatePayload :: TVar Node
                  -> EncryptedPayload
