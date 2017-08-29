@@ -27,6 +27,7 @@ setupTestNode :: FilePath -> String -> IO (TVar Node, Int)
 setupTestNode d name = do
     kp1@(pub1, _) <- newKeyPair
     kp2@(pub2, _) <- newKeyPair
+    selfPub       <- fst <$> newKeyPair
     e             <- newEnclave' [kp1, kp2]
     let crypt = Crypt
             { encryptPayload = enclaveEncryptPayload e
@@ -36,7 +37,7 @@ setupTestNode d name = do
     port    <- getUnusedPort
     nvar    <- newTVarIO =<<
         newNode crypt storage (tformat "http://localhost:{}/" [port])
-        [pub1, pub2] [] []
+        [pub1, pub2] [] selfPub []
     return (nvar, port)
 
 link :: TVar Node -> TVar Node -> STM ()
