@@ -129,11 +129,11 @@ sendPayload :: Node
             -> PublicKey
             -> [PublicKey]
             -> IO [Either String Text]
-sendPayload node@Node{..} pl from initRcpts = do
-    let (onlySelf, rcpts) = if null rcptsWithAst
+sendPayload node@Node{..} pl from givenRcpts = do
+    let (onlySelf, rcpts) = if null allRcpts
             then (True, [nodeSelfPub])
-            else (False, rcptsWithAst)
-        rcptsWithAst      = nodeAlwaysSendTo ++ initRcpts
+            else (False, allRcpts)
+        allRcpts          = nodeAlwaysSendTo ++ givenRcpts
     eenc <- encryptPayload nodeCrypt pl from rcpts
     case eenc of
         Left err  -> return [Left err]

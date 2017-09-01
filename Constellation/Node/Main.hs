@@ -88,8 +88,8 @@ run cfg@Config{..} = do
             { encryptPayload = enclaveEncryptPayload e
             , decryptPayload = enclaveDecryptPayload e
             }
-    ast     <- mustLoadPublicKeys cfgAlwaysSendTo
-    selfPub <- fst <$> newKeyPair
+    ast          <- mustLoadPublicKeys cfgAlwaysSendTo
+    (selfPub, _) <- newKeyPair
     logf' "Throwaway public key for self-sending: {}" [show selfPub]
     logf' "Initializing storage {}" [cfgStorage]
     let experimentalStorageCaveat s = warnf "The {} storage engine is experimental. It may be removed or changed at any time. Please see the discussion at https://github.com/jpmorganchase/constellation/issues/37" [s :: Text]

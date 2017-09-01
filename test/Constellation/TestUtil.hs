@@ -27,7 +27,7 @@ setupTestNode :: FilePath -> String -> IO (TVar Node, Int)
 setupTestNode d name = do
     kp1@(pub1, _) <- newKeyPair
     kp2@(pub2, _) <- newKeyPair
-    selfPub       <- fst <$> newKeyPair
+    (selfPub, _)  <- newKeyPair
     e             <- newEnclave' [kp1, kp2]
     let crypt = Crypt
             { encryptPayload = enclaveEncryptPayload e
