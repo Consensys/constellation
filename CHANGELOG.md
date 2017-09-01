@@ -39,6 +39,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     - `--storage=path`: Default storage engine (`bdb`) using the
       `path` folder.
 
+- The 'to' field of Send requests may now be empty. When there are
+  no recipients, the payload will be encrypted using a throwaway
+  public key, and the encrypted payload will not be sent to any
+  external nodes.
+
 ## [0.1.0] - 2017-06-06
 
 This release includes changes to the configuration file
