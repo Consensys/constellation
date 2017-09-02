@@ -144,21 +144,22 @@ mustB64TextMkPublicKey = fromJust . mkPublicKey . mustB64TextDecodeBs
 
 testMustDecodeB64PublicKey :: TestTree
 testMustDecodeB64PublicKey = kvTest "mustDecodeB64PublicKey"
-    [(pk1bs, pk1)] NodeApi.mustDecodeB64PublicKey
+    [(pk1bs, pk1)]
+    NodeApi.mustDecodeB64PublicKey
 
 testDecodePublicKeys :: TestTree
 testDecodePublicKeys = kvTest "decodePublicKeys"
-    [((encodeUtf8 $ pk1t ++ "," ++ pk2t), [pk1, pk2])] NodeApi.decodePublicKeys
+    [(encodeUtf8 $ pk1t ++ "," ++ pk2t, [pk1, pk2])]
+    NodeApi.decodePublicKeys
 
 testDecodeSendRaw :: TestTree
 testDecodeSendRaw = testCase "decodeSendRaw" $
-    (NodeApi.decodeSendRaw
+    NodeApi.decodeSendRaw
          (BLC.pack pl)
          [(hContentLength, pll), (NodeApi.hFrom, pk1bs), (NodeApi.hTo, pk2bs)]
-    ) @?=
-    (Right $ NodeApi.Send
+    @?=
+    Right NodeApi.Send
         { sreqPayload = BC.pack pl
         , sreqFrom    = pk1
         , sreqTo      = [pk2]
         }
-    )

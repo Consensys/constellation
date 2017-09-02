@@ -16,7 +16,7 @@ tests = testGroup "Node.Storage.Sqlite"
     ]
 
 testSqlite :: TestTree
-testSqlite = testCaseSteps "storage" $ \step -> do
+testSqlite = testCaseSteps "storage" $ \step ->
     withSystemTempDirectory "constellation-test-XXX" $ \tempDir-> do
         step "Setting up SQLite instance"
         storage <- sqliteStorage (tempDir </> "test.db")

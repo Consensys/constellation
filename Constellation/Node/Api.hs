@@ -149,13 +149,14 @@ hTo = "to"
 
 decodeSendRaw :: BL.ByteString -> RequestHeaders -> Either String Send
 decodeSendRaw b h = case getHeaders [hContentLength, hFrom, hTo] h of
-    Right headers -> Right Send
-                    { sreqPayload = decodePayload (hmap ! hContentLength) b
-                    , sreqFrom    = mustDecodeB64PublicKey $ hmap ! hFrom
-                    , sreqTo      = decodePublicKeys $ hmap ! hTo
-                    }
-                    where hmap = HM.fromList headers
-    Left err      -> Left err
+    Right hs -> Right Send
+        { sreqPayload = decodePayload (hmap ! hContentLength) b
+        , sreqFrom    = mustDecodeB64PublicKey $ hmap ! hFrom
+        , sreqTo      = decodePublicKeys $ hmap ! hTo
+        }
+      where
+        hmap = HM.fromList hs
+    Left err -> Left err
 
 decodePayload :: ByteString -> BL.ByteString -> ByteString
 decodePayload h = toStrict . take (read $ BC.unpack h :: Int64)
@@ -164,22 +165,21 @@ mustDecodeB64PublicKey :: ByteString -> PublicKey
 mustDecodeB64PublicKey = fromJust . mkPublicKey . mustB64DecodeBs
 
 decodePublicKeys :: ByteString -> [PublicKey]
-decodePublicKeys = (map mustDecodeB64PublicKey) . (BC.split ',')
+decodePublicKeys = map mustDecodeB64PublicKey . BC.split ','
 
 getHeaders :: [HeaderName] -> RequestHeaders -> Either String RequestHeaders
 getHeaders names headers =
     foldl' (\acc name -> case getHeader name headers of
-               Just h  -> (case acc of
-                             Right xs -> Right $ h:xs
-                             err      -> err)
-               Nothing -> Left $ "Missing header: " ++ show name
+                 Just h  -> case acc of
+                     Right xs -> Right $ h:xs
+                     err      -> err
+                 Nothing -> Left $ "Missing header: " ++ show name
            ) (Right []) names
 
 getHeader :: HeaderName -> RequestHeaders -> Maybe Header
-getHeader hname headers =
-    case (filter (\(header, _) -> header == hname) headers) of
-        (x):_ -> Just x
-        _     -> Nothing
+getHeader hname hs = case filter (\(h, _) -> h == hname) hs of
+    x:_ -> Just x
+    _   -> Nothing
 
 whitelist :: [String] -> Whitelist
 whitelist strs = Whitelist

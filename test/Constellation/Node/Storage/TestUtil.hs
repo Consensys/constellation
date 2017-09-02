@@ -13,7 +13,7 @@ import Constellation.Node.Types (Storage(loadPayload, savePayload, deletePayload
                                          closeStorage))
 
 testStorage :: Storage -> String -> ((String -> IO ()) -> Assertion)
-testStorage storage testName = \step -> do
+testStorage storage testName step = do
     step "Saving payload"
     (pub1, boxPriv1) <- newKeyPair
     (pub2, _)        <- newKeyPair
