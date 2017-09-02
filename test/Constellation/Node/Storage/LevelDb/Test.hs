@@ -16,7 +16,7 @@ tests = testGroup "Node.Storage.LevelDb"
     ]
 
 testLevelDb :: TestTree
-testLevelDb = testCaseSteps "storage" $ \step -> do
+testLevelDb = testCaseSteps "storage" $ \step ->
     withSystemTempDirectory "constellation-test-XXX" $ \tempDir-> do
         step "Setting up LevelDB instance"
         storage <- levelDbStorage tempDir

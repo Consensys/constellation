@@ -12,5 +12,4 @@ defaultMain :: IO ()
 defaultMain = runInputT defaultSettings configure
 
 configure :: MonadIO m => InputT m ()
-configure = do
-    putStrLn "hi"
+configure = putStrLn "The configuration tool hasn't been implemented yet"
