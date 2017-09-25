@@ -1,4 +1,4 @@
-# Constellation
+# Constellation [<img src="https://travis-ci.org/jpmorganchase/constellation.svg" align="right" />](https://travis-ci.org/jpmorganchase/constellation)
 
 Constellation forms a network of nodes, each of which advertises a list of
 public keys that they are the recipient for. Each node exposes an API which

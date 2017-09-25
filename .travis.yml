@@ -1,0 +1,48 @@
+sudo: required
+
+services:
+  - docker
+
+env:
+  global:
+    - BUILD=${TRAVIS_BUILD_NUMBER}
+    - CACHE_DIR=$HOME/.cache/docker
+  matrix:
+    - TYPE=deb
+      PLATFORM=ubuntu
+      DISTRO_VERSION=trusty
+    - TYPE=deb
+      PLATFORM=ubuntu
+      DISTRO_VERSION=xenial
+    - TYPE=deb
+      PLATFORM=ubuntu
+      DISTRO_VERSION=zesty
+    - TYPE=rpm
+      PLATFORM=fedora
+      DISTRO_VERSION=24
+    - TYPE=rpm
+      PLATFORM=fedora
+      DISTRO_VERSION=25
+    - TYPE=rpm
+      PLATFORM=fedora
+      DISTRO_VERSION=26
+
+cache:
+  directories:
+    - $CACHE_DIR
+
+before_install:
+  - ./scripts/travis-ci/upgrade-docker.sh
+  - ./scripts/travis-ci/attempt-cache-load.sh ${PLATFORM}-${DISTRO_VERSION} ${CACHE_DIR}
+
+install:
+  - docker build -f build-${PLATFORM}.dockerfile --build-arg DISTRO_VERSION=${DISTRO_VERSION} -t ${PLATFORM}-${DISTRO_VERSION} .
+  - ./scripts/travis-ci/save-docker-cache.sh ${PLATFORM}-${DISTRO_VERSION} ${CACHE_DIR}
+
+before_script:
+  - ./scripts/travis-ci/extract-built-package.sh ${PLATFORM}-${DISTRO_VERSION} ${TYPE}
+  - ./scripts/travis-ci/attempt-cache-load.sh test-${PLATFORM}-${DISTRO_VERSION} ${CACHE_DIR}
+
+script:
+  - docker build -f test-${PLATFORM}.dockerfile --build-arg DISTRO_VERSION=${DISTRO_VERSION} -t test-${PLATFORM}-${DISTRO_VERSION} .
+  - ./scripts/travis-ci/save-docker-cache.sh test-${PLATFORM}-${DISTRO_VERSION} ${CACHE_DIR}
