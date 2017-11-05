@@ -8,6 +8,7 @@ module Main
 
 import ClassyPrelude
 import Control.Logging (LogLevel(LevelWarn), setLogLevel, withStderrLogging)
+import GHC.Conc (getNumProcessors)
 import Test.Tasty (TestTree, testGroup, defaultMain)
 
 import qualified Constellation.Enclave.Test as Enclave
@@ -63,6 +64,6 @@ tests = testGroup ""
 
 main :: IO ()
 main = do
-    setNumCapabilities =<< getNumCapabilities
+    setNumCapabilities =<< getNumProcessors
     setLogLevel LevelWarn
     withStderrLogging $ defaultMain tests
