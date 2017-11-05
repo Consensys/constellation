@@ -10,20 +10,16 @@ import Data.Aeson
     (FromJSON(parseJSON), ToJSON(toJSON), Value(Object), (.:), (.=), object)
 import Data.Binary (encode, decodeOrFail)
 import Data.ByteArray.Encoding (Base(Base64), convertToBase)
-import Data.HashMap.Strict ((!))
 import Data.IP (IP(IPv4, IPv6), toHostAddress, toHostAddress6)
 import Data.Maybe (fromJust)
 import Data.Set (Set)
 import Data.Text.Format (Shown(Shown))
-import Network.HTTP.Types (Header, HeaderName, RequestHeaders)
-import Network.HTTP.Types.Header (hContentLength)
+import Network.HTTP.Types (HeaderName, RequestHeaders)
 import Network.Socket
     (SockAddr(SockAddrInet, SockAddrInet6), HostAddress, HostAddress6)
 import Text.Read (read)
 import qualified Data.Aeson as AE
-import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy as BL
-import qualified Data.HashMap.Strict as HM
 import qualified Data.Set as Set
 import qualified Data.Text.Encoding as TE
 import qualified Network.Wai as Wai
@@ -34,6 +30,7 @@ import Constellation.Enclave.Types (PublicKey, mkPublicKey)
 import Constellation.Node
 import Constellation.Node.Types
 import Constellation.Util.ByteString (mustB64DecodeBs, mustB64TextDecodeBs)
+import Constellation.Util.Http (getHeaderValues, getHeaderCommaValues)
 import Constellation.Util.Logging (debugf, warnf)
 import Constellation.Util.Wai
     (ok, badRequest, unauthorized, internalServerError)
@@ -142,44 +139,25 @@ data Whitelist = Whitelist
     } deriving Show
 
 hFrom :: HeaderName
-hFrom = "from"
+hFrom = "c11n-from"
 
 hTo :: HeaderName
-hTo = "to"
+hTo = "c11n-to"
 
 decodeSendRaw :: BL.ByteString -> RequestHeaders -> Either String Send
-decodeSendRaw b h = case getHeaders [hContentLength, hFrom, hTo] h of
-    Right hs -> Right Send
-        { sreqPayload = decodePayload (hmap ! hContentLength) b
-        , sreqFrom    = mustDecodeB64PublicKey $ hmap ! hFrom
-        , sreqTo      = decodePublicKeys $ hmap ! hTo
-        }
-      where
-        hmap = HM.fromList hs
-    Left err -> Left err
-
-decodePayload :: ByteString -> BL.ByteString -> ByteString
-decodePayload h = toStrict . take (read $ BC.unpack h :: Int64)
+decodeSendRaw b h = case getHeaderValues hFrom h of
+    []     -> Left "decodeSendRaw: From header not found"
+    [from] -> case getHeaderCommaValues hTo h of
+        [] -> Left "decodeSendRaw: To header not found"
+        to -> Right Send
+            { sreqPayload = toStrict b
+            , sreqFrom    = mustDecodeB64PublicKey from
+            , sreqTo      = map mustDecodeB64PublicKey to
+            }
+    _      -> Left "decodeSendRaw: More than one From header"
 
 mustDecodeB64PublicKey :: ByteString -> PublicKey
 mustDecodeB64PublicKey = fromJust . mkPublicKey . mustB64DecodeBs
-
-decodePublicKeys :: ByteString -> [PublicKey]
-decodePublicKeys = map mustDecodeB64PublicKey . BC.split ','
-
-getHeaders :: [HeaderName] -> RequestHeaders -> Either String RequestHeaders
-getHeaders names headers =
-    foldl' (\acc name -> case getHeader name headers of
-                 Just h  -> case acc of
-                     Right xs -> Right $ h:xs
-                     err      -> err
-                 Nothing -> Left $ "Missing header: " ++ show name
-           ) (Right []) names
-
-getHeader :: HeaderName -> RequestHeaders -> Maybe Header
-getHeader hname hs = case filter (\(h, _) -> h == hname) hs of
-    x:_ -> Just x
-    _   -> Nothing
 
 whitelist :: [String] -> Whitelist
 whitelist strs = Whitelist
@@ -244,8 +222,8 @@ parseRequest :: [Text] -> BL.ByteString -> RequestHeaders -> Either String ApiRe
 -----
 parseRequest ["send"]       b _ = ApiSend <$> AE.eitherDecode' b
 parseRequest ["receive"]    b _ = ApiReceive <$> AE.eitherDecode' b
-parseRequest ["sendRaw"]    b h = ApiSend <$> decodeSendRaw b h
-parseRequest ["receiveRaw"] b _ = ApiReceiveRaw <$> AE.eitherDecode' b
+parseRequest ["sendraw"]    b h = ApiSend <$> decodeSendRaw b h
+parseRequest ["receiveraw"] b _ = ApiReceiveRaw <$> AE.eitherDecode' b
 parseRequest ["delete"]     b _ = ApiDelete <$> AE.eitherDecode' b
 -----
 -- Node to node

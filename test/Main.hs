@@ -28,6 +28,7 @@ import qualified Constellation.Util.AtExit.Test as UtilAtExit
 import qualified Constellation.Util.ByteString.Test as UtilByteString
 import qualified Constellation.Util.Either.Test as UtilEither
 import qualified Constellation.Util.Exception.Test as UtilException
+import qualified Constellation.Util.Http.Test as UtilHttp
 import qualified Constellation.Util.Lockable.Test as UtilLockable
 import qualified Constellation.Util.Network.Test as UtilNetwork
 import qualified Constellation.Util.String.Test as UtilString
@@ -54,6 +55,7 @@ tests = testGroup ""
     , UtilByteString.tests
     , UtilEither.tests
     , UtilException.tests
+    , UtilHttp.tests
     , UtilLockable.tests
     , UtilNetwork.tests
     , UtilString.tests
