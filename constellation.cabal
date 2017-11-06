@@ -36,6 +36,7 @@ library
                        Constellation.Util.ByteString
                        Constellation.Util.Either
                        Constellation.Util.Exception
+                       Constellation.Util.Http
                        Constellation.Util.Lockable
                        Constellation.Util.Logging
                        Constellation.Util.Network
@@ -110,6 +111,7 @@ test-suite constellation-test
                        Constellation.Util.ByteString.Test
                        Constellation.Util.Either.Test
                        Constellation.Util.Exception.Test
+                       Constellation.Util.Http.Test
                        Constellation.Util.Lockable.Test
                        Constellation.Util.Logging.Test
                        Constellation.Util.Network.Test

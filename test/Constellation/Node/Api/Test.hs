@@ -9,7 +9,6 @@ import Data.Maybe (fromJust)
 import Data.IP (toHostAddress, toHostAddress6)
 import Data.Text.Encoding (encodeUtf8)
 import Network.Socket (SockAddr(SockAddrInet, SockAddrInet6, SockAddrUnix, SockAddrCan))
-import Network.HTTP.Types (Header, RequestHeaders)
 import Network.HTTP.Types.Header (hContentLength)
 import System.IO.Temp (withSystemTempDirectory)
 import Test.Tasty (TestTree, testGroup)
@@ -32,11 +31,7 @@ tests :: TestTree
 tests = testGroup "Constellation.Node.Api"
     [ testWhitelist
     , testSendAndReceivePayload
-    , testGetHeader
-    , testGetHeaderInvalid
-    , testDecodePayload
     , testMustDecodeB64PublicKey
-    , testDecodePublicKeys
     , testDecodeSendRaw
     ]
 
@@ -94,32 +89,11 @@ testSendAndReceivePayload = testCaseSteps "sendAndReceivePayload" $ \step ->
         nodes <- atomically $ mapM readTVar [node1Var, node2Var, node3Var]
         mapM_ (closeStorage . nodeStorage) nodes
 
-header1 :: Header
-header1 = ("h1", BC.pack "payload1")
-
-header2 :: Header
-header2 = ("h2", BC.pack "payload2")
-
-headers :: RequestHeaders
-headers = [header1, header2]
-
-testGetHeader :: TestTree
-testGetHeader = testCase "getHeader" $
-    NodeApi.getHeader "h1" headers @?= Just header1
-
-testGetHeaderInvalid :: TestTree
-testGetHeaderInvalid = testCase "getHeaderInvalid" $
-    NodeApi.getHeader "invalid" headers @?= Nothing
-
 pl :: String
 pl = "payload"
 
 pll :: ByteString
 pll = (BC.pack . show . length) pl
-
-testDecodePayload :: TestTree
-testDecodePayload  = testCase "readPayload" $
-    NodeApi.decodePayload pll (BLC.pack $ pl ++ " ") @?= BC.pack pl
 
 pk1t :: Text
 pk1t = "BULeR8JyUWhiuuCMU/HLA0Q5pzkYT+cHII3ZKBey3Bo="
@@ -146,11 +120,6 @@ testMustDecodeB64PublicKey :: TestTree
 testMustDecodeB64PublicKey = kvTest "mustDecodeB64PublicKey"
     [(pk1bs, pk1)]
     NodeApi.mustDecodeB64PublicKey
-
-testDecodePublicKeys :: TestTree
-testDecodePublicKeys = kvTest "decodePublicKeys"
-    [(encodeUtf8 $ pk1t ++ "," ++ pk2t, [pk1, pk2])]
-    NodeApi.decodePublicKeys
 
 testDecodeSendRaw :: TestTree
 testDecodeSendRaw = testCase "decodeSendRaw" $
