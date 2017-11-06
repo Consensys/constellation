@@ -5,7 +5,7 @@ All major changes to Constellation will be recorded here.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [0.2.0] - 2017-11-06
 ### Added
 - A `dir` storage engine which stores payloads as individual files in
   a folder, suitable for use with FUSE connectors. (Note that, if used
@@ -17,13 +17,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   The `dir` storage engine uses Base32-encoded filenames to ensure
   compatibility with most file systems.
 
-- (Experimental) A 'sqlite' storage engine. See related discussion at
+- (Experimental) A `sqlite` storage engine. See related discussion at
   https://github.com/jpmorganchase/constellation/issues/37
 
-- (Experimental) A 'leveldb' storage engine. See related discussion at
+- (Experimental) A `leveldb` storage engine. See related discussion at
   https://github.com/jpmorganchase/constellation/issues/37
 
-- A non-persistent 'memory' storage engine.
+- A non-persistent `memory` storage engine.
 
 - Ability to choose a storage engine in configs and on the command
   line:
@@ -39,10 +39,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     - `--storage=path`: Default storage engine (`bdb`) using the
       `path` folder.
 
-- The 'to' field of Send requests may now be empty. When there are
+- The `to` field of Send requests may now be empty. When there are
   no recipients, the payload will be encrypted using a throwaway
   public key, and the encrypted payload will not be sent to any
   external nodes.
+
+### Changed
+- Node API:
+  - `/sendRaw` is now `/sendraw`
+  - `/receiveRaw` is now `/receiveraw`
+  - The `from` and `to` headers for the `/sendraw` and `/receiveraw`
+    endpoints are now `c11n-from` and `c11n-to` respectively.
 
 ## [0.1.0] - 2017-06-06
 
