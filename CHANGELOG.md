@@ -156,3 +156,4 @@ the Changed section below and `sample.conf` for more information.
 
 [Unreleased]: https://github.com/jpmorganchase/constellation/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/jpmorganchase/constellation/compare/v0.0.1-alpha...v0.1.0
+[0.2.0]: https://github.com/jpmorganchase/constellation/compare/v0.1.0...v0.2.0
