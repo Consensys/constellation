@@ -4,7 +4,7 @@
 module Constellation.Util.Either where
 
 import ClassyPrelude
-import Control.Monad.Trans.Either (EitherT, hoistEither)
+import Control.Monad.Except (ExceptT(ExceptT))
 
 fromRight :: Either a b -> b
 fromRight (Left _)  = error "fromRight: Got Left"
@@ -19,5 +19,5 @@ flattenEithers sep es = case partitionEithers es of
     ([], rs) -> Right rs
     (ls, _)  -> Left $ mconcat $ intersperse sep ls
 
-maybeToEitherT :: Monad m => e -> Maybe a -> EitherT e m a
-maybeToEitherT err = hoistEither . maybe (Left err) Right
+maybeToExceptT :: Monad m => e -> Maybe a -> ExceptT e m a
+maybeToExceptT err = ExceptT . return . maybe (Left err) Right
