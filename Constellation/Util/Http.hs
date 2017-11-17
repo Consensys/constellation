@@ -28,7 +28,7 @@ postRequestLbs url b = postRequest url (RequestBodyLBS b)
 postRequest :: MonadThrow m => String -> RequestBody -> m Request
 postRequest url b = parseRequest url >>= \req -> return req
     { method      = "POST"
-    , secure      = True
+    , secure      = True  -- TODO: This needs to be toggled
     , requestBody = b
     }
 

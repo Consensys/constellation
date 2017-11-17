@@ -34,6 +34,7 @@ import qualified Constellation.Util.File.Test as UtilFile
 import qualified Constellation.Util.Http.Test as UtilHttp
 import qualified Constellation.Util.Json.Test as UtilJson
 import qualified Constellation.Util.Lockable.Test as UtilLockable
+import qualified Constellation.Util.Logging.Test as UtilLogging
 import qualified Constellation.Util.Network.Test as UtilNetwork
 import qualified Constellation.Util.String.Test as UtilString
 import qualified Constellation.Util.Text.Test as UtilText
@@ -65,6 +66,7 @@ tests = testGroup ""
     , UtilHttp.tests
     , UtilJson.tests
     , UtilLockable.tests
+    , UtilLogging.tests
     , UtilNetwork.tests
     , UtilString.tests
     , UtilText.tests

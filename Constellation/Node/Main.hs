@@ -200,8 +200,10 @@ setupTls Config{..} = case cfgTls of
         return (runTLS settings, m)
     _        -> error "setupTls: Invalid TLS mode"
   where
-    strust   = stringToTrustMode cfgTlsServerTrust
-    ctrust   = stringToTrustMode cfgTlsClientTrust
+    strust   = fromMaybe (error "Invalid server trust mode") $
+               stringToTrustMode cfgTlsServerTrust
+    ctrust   = fromMaybe (error "Invalid client trust mode") $
+               stringToTrustMode cfgTlsClientTrust
 
 hostnameFromUrl :: MonadThrow m => Text -> m Text
 hostnameFromUrl url = do

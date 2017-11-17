@@ -4,7 +4,7 @@
 module Constellation.Util.Logging.Test where
 
 import ClassyPrelude
-import Test.Tasty (TestTree)
+import Test.Tasty (TestTree, testGroup)
 
 import Constellation.Util.Text (tformat)
 

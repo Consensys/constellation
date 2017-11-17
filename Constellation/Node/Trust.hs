@@ -62,14 +62,13 @@ instance Show TrustMode where
     show CaOrTofu     = "ca-or-tofu"
     show NoValidation = "insecure-no-validation"
 
-stringToTrustMode :: String -> TrustMode
-stringToTrustMode "whitelist"              = Whitelist
-stringToTrustMode "tofu"                   = Tofu
-stringToTrustMode "ca"                     = Ca
-stringToTrustMode "ca-or-tofu"             = CaOrTofu
-stringToTrustMode "insecure-no-validation" = NoValidation
-stringToTrustMode _                                 =
-    error "stringToTrustMode: Invalid argument"
+stringToTrustMode :: String -> Maybe TrustMode
+stringToTrustMode "whitelist"              = Just Whitelist
+stringToTrustMode "tofu"                   = Just Tofu
+stringToTrustMode "ca"                     = Just Ca
+stringToTrustMode "ca-or-tofu"             = Just CaOrTofu
+stringToTrustMode "insecure-no-validation" = Just NoValidation
+stringToTrustMode _                        = Nothing
 
 data KnownHosts = KnownHosts
     { khHosts :: HashMap String (Set KnownHost)
@@ -116,7 +115,7 @@ ciphers =
     , cipher_ECDHE_RSA_AES256GCM_SHA384
     -- TODO: cipher_ECDHE-RSA-CHACHA20-POLY1305 if/when added upstream
     -- TODO: Add DHE ciphers enabled by a --insecure-static-dh flag
-    -- (for MITM appliances )? Only needs to be on outbound?
+    -- (for MITM appliances)? Only needs to be on outbound?
     ]
 
 versions :: [Version]

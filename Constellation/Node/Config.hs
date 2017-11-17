@@ -32,7 +32,7 @@ data Config = Config
     , cfgPrivateKeys      :: [FilePath]
     , cfgAlwaysSendTo     :: [FilePath]
     , cfgPasswords        :: Maybe FilePath
-    , cfgStorage          :: FilePath
+    , cfgStorage          :: String
     , cfgIpWhitelist      :: [String]
     , cfgTls              :: String
     , cfgTlsServerCert    :: FilePath
