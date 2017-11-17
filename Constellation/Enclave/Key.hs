@@ -6,7 +6,7 @@ module Constellation.Enclave.Key where
 
 import Prelude (putStrLn)
 import ClassyPrelude hiding (hash, putStrLn)
-import Control.Monad.Trans.Either (EitherT(EitherT), runEitherT)
+import Control.Monad.Except (ExceptT(ExceptT), runExceptT)
 import Data.ByteArray.Encoding (Base(Base64), convertToBase)
 import qualified Crypto.Saltine.Class as S
 import qualified Crypto.Saltine.Core.Box as Box
@@ -17,7 +17,8 @@ import qualified Data.Text as T
 import Constellation.Enclave.Types
     (PublicKey(PublicKey, unPublicKey), mkPublicKey)
 import Constellation.Util.ByteString (b64TextDecodeBs)
-import Constellation.Util.Either (fromShowRight, flattenEithers, maybeToEitherT)
+import Constellation.Util.Either
+    (fromShowRight, flattenEithers, maybeToExceptT)
 import Constellation.Util.File (worriedReadFile)
 import Constellation.Util.Lockable
     (Lockable(Unlocked), lock, promptingUnlock, unlock)
@@ -41,21 +42,21 @@ jsonEncodePrivateKey mpwd priv = AE.encode <$> mkLockable
 
 loadKeyPair :: (FilePath, FilePath, Maybe String)
             -> IO (Either String (PublicKey, Box.SecretKey))
-loadKeyPair (pubPath, privPath, mpwd) = runEitherT $ do
-    pub    <- EitherT $ loadPublicKey pubPath
-    locked <- EitherT $ AE.eitherDecode' . fromStrict <$>
+loadKeyPair (pubPath, privPath, mpwd) = runExceptT $ do
+    pub    <- ExceptT $ loadPublicKey pubPath
+    locked <- ExceptT $ AE.eitherDecode' . fromStrict <$>
         worriedReadFile privPath
     liftIO $ putStrLn $ "Unlocking " ++ privPath
-    privBs <- EitherT $ case mpwd of
+    privBs <- ExceptT $ case mpwd of
         Just pwd -> return $ unlock pwd locked
         Nothing  -> promptingUnlock locked
     liftIO $ putStrLn $ "Unlocked " ++ privPath
-    (pub,) <$> maybeToEitherT "Failed to S.decode privBs" (S.decode privBs)
+    (pub,) <$> maybeToExceptT "Failed to S.decode privBs" (S.decode privBs)
 
 loadPublicKey :: FilePath -> IO (Either String PublicKey)
-loadPublicKey pubPath = runEitherT $ do
-    pubBs <- EitherT $ b64TextDecodeBs . T.strip <$> readFileUtf8 pubPath
-    maybeToEitherT "loadKeyPair: Failed to mkPublicKey" (mkPublicKey pubBs)
+loadPublicKey pubPath = runExceptT $ do
+    pubBs <- ExceptT $ b64TextDecodeBs . T.strip <$> readFileUtf8 pubPath
+    maybeToExceptT "loadKeyPair: Failed to mkPublicKey" (mkPublicKey pubBs)
 
 loadKeyPairs :: [(FilePath, FilePath, Maybe String)]
              -> IO (Either String [(PublicKey, Box.SecretKey)])
