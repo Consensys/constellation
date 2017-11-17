@@ -5,6 +5,23 @@ All major changes to Constellation will be recorded here.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
+### Added
+- `workdir` command line and configuration option to set the directory
+  in which files specified in other command-line arguments, as well as
+  auto-generated files, will be placed.
+
+- TLS certificate auto-generation and mutual authentication using a
+  whitelist, certificate authority, or trust-on-first-use model. See
+  `sample.conf` for more information.
+
+### Changed
+- Node API: The `from` parameter to `/send` is now optional. If unset,
+  the first public key listed in `publickeys` will be used.
+
+- Argon2id is now the default for password-based key locking.
+
 ## [0.2.0] - 2017-11-06
 ### Added
 - A `dir` storage engine which stores payloads as individual files in
@@ -154,6 +171,6 @@ the Changed section below and `sample.conf` for more information.
 ### Added
 - Initial Constellation release.
 
-[Unreleased]: https://github.com/jpmorganchase/constellation/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/jpmorganchase/constellation/compare/v0.2.0...HEAD
 [0.1.0]: https://github.com/jpmorganchase/constellation/compare/v0.0.1-alpha...v0.1.0
 [0.2.0]: https://github.com/jpmorganchase/constellation/compare/v0.1.0...v0.2.0

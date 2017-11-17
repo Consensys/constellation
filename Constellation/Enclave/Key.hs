@@ -1,4 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE StrictData #-}
@@ -19,6 +18,7 @@ import Constellation.Enclave.Types
     (PublicKey(PublicKey, unPublicKey), mkPublicKey)
 import Constellation.Util.ByteString (b64TextDecodeBs)
 import Constellation.Util.Either (fromShowRight, flattenEithers, maybeToEitherT)
+import Constellation.Util.File (worriedReadFile)
 import Constellation.Util.Lockable
     (Lockable(Unlocked), lock, promptingUnlock, unlock)
 
@@ -43,7 +43,8 @@ loadKeyPair :: (FilePath, FilePath, Maybe String)
             -> IO (Either String (PublicKey, Box.SecretKey))
 loadKeyPair (pubPath, privPath, mpwd) = runEitherT $ do
     pub    <- EitherT $ loadPublicKey pubPath
-    locked <- EitherT $ AE.eitherDecode' . fromStrict <$> readFile privPath
+    locked <- EitherT $ AE.eitherDecode' . fromStrict <$>
+        worriedReadFile privPath
     liftIO $ putStrLn $ "Unlocking " ++ privPath
     privBs <- EitherT $ case mpwd of
         Just pwd -> return $ unlock pwd locked

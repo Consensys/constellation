@@ -17,6 +17,7 @@ data Node = Node
     { nodePi           :: PartyInfo
     , nodeCrypt        :: Crypt
     , nodeStorage      :: Storage
+    , nodeDefaultPub   :: Maybe PublicKey
     , nodeAlwaysSendTo :: [PublicKey]
     , nodeSelfPub      :: PublicKey
     , nodeManager      :: Manager
@@ -37,14 +38,22 @@ instance Binary PartyInfo where
         }
 
 data Crypt = Crypt
-    { encryptPayload :: ByteString -> PublicKey -> [PublicKey] -> IO (Either String EncryptedPayload)
-    , decryptPayload :: EncryptedPayload -> PublicKey -> IO (Either String ByteString)
+    { encryptPayload :: ByteString
+                     -> PublicKey
+                     -> [PublicKey]
+                     -> IO (Either String EncryptedPayload)
+    , decryptPayload :: EncryptedPayload
+                     -> PublicKey
+                     -> IO (Either String ByteString)
     }
 
 data Storage = Storage
-    { savePayload     :: (EncryptedPayload, [PublicKey]) -> IO (Either String Text)
-    , loadPayload     :: Text -> IO (Either String (EncryptedPayload, [PublicKey]))
+    { savePayload     :: (EncryptedPayload, [PublicKey])
+                      -> IO (Either String Text)
+    , loadPayload     :: Text
+                      -> IO (Either String (EncryptedPayload, [PublicKey]))
     , deletePayload   :: Text -> IO ()
-    , traverseStorage :: (Text -> (EncryptedPayload, [PublicKey]) -> IO Bool) -> IO ()
+    , traverseStorage :: (Text -> (EncryptedPayload, [PublicKey]) -> IO Bool)
+                      -> IO ()
     , closeStorage    :: IO ()
     }

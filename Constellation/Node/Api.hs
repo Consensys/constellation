@@ -7,9 +7,11 @@ module Constellation.Node.Api where
 import ClassyPrelude hiding (delete, log)
 import Control.Monad (void)
 import Data.Aeson
-    (FromJSON(parseJSON), ToJSON(toJSON), Value(Object), (.:), (.=), object)
+    ( FromJSON(parseJSON), ToJSON(toJSON), Value(Object)
+    , (.:), (.:?), (.=), object
+    )
 import Data.Binary (encode, decodeOrFail)
-import Data.ByteArray.Encoding (Base(Base64), convertToBase)
+import Data.ByteArray.Encoding (Base(Base64), convertFromBase)
 import Data.IP (IP(IPv4, IPv6), toHostAddress, toHostAddress6)
 import Data.Maybe (fromJust)
 import Data.Set (Set)
@@ -29,23 +31,24 @@ import Constellation.Enclave.Payload
 import Constellation.Enclave.Types (PublicKey, mkPublicKey)
 import Constellation.Node
 import Constellation.Node.Types
-import Constellation.Util.ByteString (mustB64DecodeBs, mustB64TextDecodeBs)
+import Constellation.Util.ByteString (mustB64DecodeBs)
 import Constellation.Util.Http (getHeaderValues, getHeaderCommaValues)
+import Constellation.Util.Json (JsonBs(..), unJsonBs)
 import Constellation.Util.Logging (debugf, warnf)
 import Constellation.Util.Wai
     (ok, badRequest, unauthorized, internalServerError)
 
 data Send = Send
     { sreqPayload :: ByteString
-    , sreqFrom    :: PublicKey
+    , sreqFrom    :: Maybe PublicKey
     , sreqTo      :: [PublicKey]
     } deriving (Eq, Show)
 
 instance FromJSON Send where
     parseJSON (Object v) = Send
-        <$> (mustB64TextDecodeBs <$> v .: "payload")
-        <*> v .: "from"
-        <*> v .: "to"
+        <$> (unJsonBs <$> v .: "payload")
+        <*> v .:? "from"
+        <*> v .:  "to"
     parseJSON _          = mzero
 
 data SendResponse = SendResponse
@@ -54,7 +57,8 @@ data SendResponse = SendResponse
 
 instance ToJSON SendResponse where
     toJSON SendResponse{..} = object
-        ["key" .= sresKey]
+        [ "key" .= sresKey
+        ]
 
 data Receive = Receive
     { rreqKey :: Text
@@ -73,7 +77,7 @@ data ReceiveResponse = ReceiveResponse
 
 instance ToJSON ReceiveResponse where
     toJSON ReceiveResponse{..} = object
-        [ "payload" .= TE.decodeUtf8 (convertToBase Base64 rresPayload)
+        [ "payload" .= JsonBs rresPayload
         ]
 
 data Delete = Delete
@@ -145,16 +149,24 @@ hTo :: HeaderName
 hTo = "c11n-to"
 
 decodeSendRaw :: BL.ByteString -> RequestHeaders -> Either String Send
-decodeSendRaw b h = case getHeaderValues hFrom h of
-    []     -> Left "decodeSendRaw: From header not found"
-    [from] -> case getHeaderCommaValues hTo h of
-        [] -> Left "decodeSendRaw: To header not found"
-        to -> Right Send
+decodeSendRaw b h = case getHeaderCommaValues hTo h of
+    [] -> Left "decodeSendRaw: To header not found"
+    to -> case efrom of
+        Left err   -> Left err
+        Right from -> Right Send
             { sreqPayload = toStrict b
-            , sreqFrom    = mustDecodeB64PublicKey from
+            , sreqFrom    = from
             , sreqTo      = map mustDecodeB64PublicKey to
             }
-    _      -> Left "decodeSendRaw: More than one From header"
+  where
+    efrom = case getHeaderValues hFrom h of
+        []        -> Right Nothing
+        [fromB64] -> case convertFromBase Base64 fromB64 of
+            Left err   -> Left err
+            Right from -> case mkPublicKey from of
+                Nothing  -> Left "decodeSendRaw: Invalid From public key"
+                Just pub -> Right $ Just pub
+        _         -> Left "decodeSendRaw: More than one From value given"
 
 mustDecodeB64PublicKey :: ByteString -> PublicKey
 mustDecodeB64PublicKey = fromJust . mkPublicKey . mustB64DecodeBs
@@ -176,12 +188,12 @@ whitelisted Whitelist{..} (SockAddrInet6 _ _ addr _) = addr `Set.member` wlIPv6
 -- SockAddrUnix connects to the private API which has a Nothing whitelist
 whitelisted _             _                          = False
 
-app :: Maybe Whitelist -> ApiType -> TVar Node -> Wai.Application
-app (Just wl) apiType nvar req resp =
+apiApp :: Maybe Whitelist -> ApiType -> TVar Node -> Wai.Application
+apiApp (Just wl) apiType nvar req resp =
     if whitelisted wl (Wai.remoteHost req)
         then request apiType nvar req resp
         else resp unauthorized
-app Nothing   apiType nvar req resp =
+apiApp Nothing   apiType nvar req resp =
     request apiType nvar req resp
 
 request :: ApiType -> TVar Node -> Wai.Application

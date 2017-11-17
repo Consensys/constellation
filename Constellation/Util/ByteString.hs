@@ -5,6 +5,8 @@ module Constellation.Util.ByteString where
 
 import ClassyPrelude
 import Data.ByteArray.Encoding (Base(Base64), convertToBase, convertFromBase)
+import Data.Hex (hex)
+import qualified Data.ByteString as B
 import qualified Data.Text.Encoding as TE
 
 import Constellation.Util.Either (fromRight)
@@ -20,3 +22,6 @@ mustB64TextDecodeBs = fromRight . b64TextDecodeBs
 
 mustB64DecodeBs :: ByteString -> ByteString
 mustB64DecodeBs = fromRight . convertFromBase Base64
+
+hexWithColons :: ByteString -> ByteString
+hexWithColons = B.concat . intersperse ":" . map (hex . singleton) . B.unpack
