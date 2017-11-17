@@ -6,6 +6,7 @@ module Constellation.Node where
 
 import ClassyPrelude
 import Control.Exception (evaluate)
+import Control.Monad.Except (ExceptT(ExceptT), runExceptT)
 import Data.Binary (encode, decode)
 import Network.HTTP.Conduit (Manager, responseBody)
 import System.Random (StdGen, newStdGen, randomR)
@@ -19,6 +20,7 @@ import Constellation.Enclave.Payload
     (EncryptedPayload(eplSender, eplRcptBoxes), eplRcptBoxes)
 import Constellation.Enclave.Types (PublicKey(PublicKey, unPublicKey))
 import Constellation.Node.Types
+import Constellation.Util.Either (maybeToExceptT)
 import Constellation.Util.Exception (trys)
 import Constellation.Util.Http (simplePostLbs)
 import Constellation.Util.Logging (logf, warnf)
@@ -122,29 +124,22 @@ sendPayload :: Node
             -> Maybe PublicKey
             -> [PublicKey]
             -> IO [Either String Text]
-sendPayload node@Node{..} pl mfrom givenRcpts = do
-    let efrom             = case mfrom of
-            Just from -> Right from
-            Nothing   -> case nodeDefaultPub of
-                Just from -> Right from
-                Nothing   -> Left "sendPayload: No default From public key found and none was given"
+sendPayload node@Node{..} pl mSpecifiedFrom givenRcpts = do
+    let mFrom             = mSpecifiedFrom <|> nodeDefaultPub
         (onlySelf, rcpts) = if null allRcpts
             then (True, [nodeSelfPub])
             else (False, allRcpts)
         allRcpts          = nodeAlwaysSendTo ++ givenRcpts
-    case efrom of
-        Left err   -> return [Left err]
-        Right from -> do
-            eenc <- encryptPayload nodeCrypt pl from rcpts
-            case eenc of
-                Left err  -> return [Left err]
-                Right epl -> do
-                    ek <- savePayload nodeStorage (epl, rcpts)
-                    case ek of
-                        Left err -> return [Left err]
-                        Right k  -> if onlySelf
-                            then return [Right k]
-                            else propagatePayload' node epl rcpts
+    eTup <- runExceptT $ do
+        from <- maybeToExceptT "sendPayload: No default From public key found and none was given" mFrom
+        epl <- ExceptT $ encryptPayload nodeCrypt pl from rcpts
+        k <- ExceptT $ savePayload nodeStorage (epl, rcpts)
+        return (epl, k)
+    case eTup of
+        Left err       -> return [Left err]
+        Right (epl, k) -> if onlySelf
+            then return [Right k]
+            else propagatePayload' node epl rcpts
 
 propagatePayload :: TVar Node
                  -> EncryptedPayload
