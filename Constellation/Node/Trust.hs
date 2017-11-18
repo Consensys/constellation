@@ -47,6 +47,7 @@ import Constellation.Util.Either (fromShowRight)
 import Constellation.Util.File (writeFileLbs)
 import Constellation.Util.Json (HexBs(..), unHexBs)
 import Constellation.Util.Logging (warnf)
+import Constellation.Util.Tls.Vincent (validateCertificateName)
 
 data TrustMode = Whitelist
                | Tofu
@@ -226,10 +227,7 @@ vcQuery khPath khVar t (hostname, _) (Fingerprint b) c = do
             CaOrTofu     -> hostMatch && null fps
             Tofu         -> hostMatch && null fps
             NoValidation -> True
-        -- TODO: Use validate instead?
-        hostMatch = case certHostname c of
-            Nothing   -> False
-            Just host -> host == hostname
+        hostMatch = null $ validateCertificateName hostname c
         khAdded   = kh
             { khHosts = HM.insert hostname (S.insert fp fps) (khHosts kh)
             }

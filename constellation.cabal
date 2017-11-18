@@ -46,6 +46,7 @@ library
                        Constellation.Util.String
                        Constellation.Util.Text
                        Constellation.Util.Tls
+                       Constellation.Util.Tls.Vincent
                        Constellation.Util.Wai
   ghc-options:         -Wall
   build-depends:       base >= 4.9
