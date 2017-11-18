@@ -54,27 +54,27 @@ testTrustModes = testCaseSteps "testTrustModes" $ \step -> do
         ccert2 = getCertificate csigned2
         ccert3 = getCertificate csigned3
 
-    step "Whitelist"
-    withTestVc def Whitelist $ \ValidationCache{..} ->
+    withTestVc def Whitelist $ \ValidationCache{..} -> do
         -- This should fail because knownhosts is empty and whitelist doesn't
         -- add anything
+        step "Whitelist - Fail to add unknown fingerprint"
         cacheQuery ("foo.bar.baz.com", "") testingOnlyMockServerFingerprint1 scert1
             >>= \res -> res @?= ValidationCacheDenied "Failed trust validation"
 
     withTestVc def Tofu $ \ValidationCache{..} -> do
-        step "Tofu - First fingerprint"
+        step "Tofu - Add first fingerprint with empty knownhosts"
         -- This should succeed because knownhosts is empty
         cacheQuery ("foo.bar.baz.com", "") testingOnlyMockServerFingerprint1 scert1
             >>= \res -> res @?= ValidationCachePass
-        step "Tofu - Second fingerprint"
+        step "Tofu - Fail to add second fingerprint"
         -- This should fail because only fingerprint 1 is trusted for host 1
         cacheQuery ("foo.bar.baz.com", "") testingOnlyMockServerFingerprint2 scert2
             >>= \res -> res @?= ValidationCacheDenied "Failed trust validation"
-        step "Tofu - First fingerprint again"
+        step "Tofu - Verify that the first fingerprint still works"
         -- Fingerprint 1 should still succeed
         cacheQuery ("foo.bar.baz.com", "") testingOnlyMockServerFingerprint1 scert1
             >>= \res -> res @?= ValidationCachePass
-        step "Tofu - Another host"
+        step "Tofu - Adding another host should still work"
         -- Another host should still work. Using client fingerprint only
         -- because those testing certificates have a different hostname.
         cacheQuery ("127.0.0.1", "") testingOnlyMockClientFingerprint1 ccert1
