@@ -213,7 +213,7 @@ vcQuery :: FilePath
         -> MVar (KnownHosts, UTCTime)
         -> TrustMode
         -> ValidationCacheQueryCallback
-vcQuery khPath khVar t (hostname, _) (Fingerprint b) _ = do
+vcQuery khPath khVar t (hostname, _) (Fingerprint b) c = do
     maybeRefreshKnownHosts khPath khVar
     (kh, _) <- readMVar khVar
     let valid     = found || shouldAdd
@@ -223,10 +223,13 @@ vcQuery khPath khVar t (hostname, _) (Fingerprint b) _ = do
         shouldAdd = case t of
             Whitelist    -> False
             Ca           -> False
-            -- Note: Certificate's hostname is not validated here
-            CaOrTofu     -> null fps
-            Tofu         -> null fps
+            CaOrTofu     -> hostMatch && null fps
+            Tofu         -> hostMatch && null fps
             NoValidation -> True
+        -- TODO: Use validate instead?
+        hostMatch = case certHostname c of
+            Nothing   -> False
+            Just host -> host == hostname
         khAdded   = kh
             { khHosts = HM.insert hostname (S.insert fp fps) (khHosts kh)
             }

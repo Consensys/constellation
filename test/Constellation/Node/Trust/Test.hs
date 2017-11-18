@@ -58,25 +58,26 @@ testTrustModes = testCaseSteps "testTrustModes" $ \step -> do
     withTestVc def Whitelist $ \ValidationCache{..} ->
         -- This should fail because knownhosts is empty and whitelist doesn't
         -- add anything
-        cacheQuery ("foo.com", "") testingOnlyMockServerFingerprint1 scert1
+        cacheQuery ("foo.bar.baz.com", "") testingOnlyMockServerFingerprint1 scert1
             >>= \res -> res @?= ValidationCacheDenied "Failed trust validation"
 
     withTestVc def Tofu $ \ValidationCache{..} -> do
+        step "Tofu - First fingerprint"
         -- This should succeed because knownhosts is empty
-        step "Tofu 1"
-        cacheQuery ("foo.com", "") testingOnlyMockServerFingerprint1 scert1
+        cacheQuery ("foo.bar.baz.com", "") testingOnlyMockServerFingerprint1 scert1
             >>= \res -> res @?= ValidationCachePass
+        step "Tofu - Second fingerprint"
         -- This should fail because only fingerprint 1 is trusted for host 1
-        step "Tofu 2"
-        cacheQuery ("foo.com", "") testingOnlyMockServerFingerprint2 scert2
+        cacheQuery ("foo.bar.baz.com", "") testingOnlyMockServerFingerprint2 scert2
             >>= \res -> res @?= ValidationCacheDenied "Failed trust validation"
+        step "Tofu - First fingerprint again"
         -- Fingerprint 1 should still succeed
-        step "Tofu 3"
-        cacheQuery ("foo.com", "") testingOnlyMockServerFingerprint1 scert1
+        cacheQuery ("foo.bar.baz.com", "") testingOnlyMockServerFingerprint1 scert1
             >>= \res -> res @?= ValidationCachePass
-        -- Another host should still work
-        step "Tofu 4"
-        cacheQuery ("bar.com", "") testingOnlyMockServerFingerprint2 scert2
+        step "Tofu - Another host"
+        -- Another host should still work. Using client fingerprint only
+        -- because those testing certificates have a different hostname.
+        cacheQuery ("127.0.0.1", "") testingOnlyMockClientFingerprint1 ccert1
             >>= \res -> res @?= ValidationCachePass
 
     -- TODO: All modes
