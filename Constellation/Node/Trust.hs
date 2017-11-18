@@ -199,7 +199,7 @@ validationCache khPath t = do
 initKnownHosts :: FilePath -> IO (MVar (KnownHosts, UTCTime))
 initKnownHosts khPath = do
     exists <- doesFileExist khPath
-    when (not exists) $ saveKnownHosts def khPath
+    when (not exists) $ saveKnownHosts' khPath def
     mtime <- getModificationTime khPath
     kh    <- fromShowRight <$> loadKnownHosts khPath
     newMVar (kh, mtime)
@@ -207,8 +207,14 @@ initKnownHosts khPath = do
 loadKnownHosts :: FilePath -> IO (Either String KnownHosts)
 loadKnownHosts fpath = AE.eitherDecode' <$> BL.readFile fpath
 
-saveKnownHosts :: KnownHosts -> FilePath -> IO ()
-saveKnownHosts kh fpath = writeFileLbs fpath $ encodePretty kh
+saveKnownHosts :: FilePath -> MVar (KnownHosts, UTCTime) -> KnownHosts -> IO ()
+saveKnownHosts khPath khVar kh = do
+    saveKnownHosts' khPath kh
+    mtime <- getModificationTime khPath
+    void $ swapMVar khVar (kh, mtime)
+
+saveKnownHosts' :: FilePath -> KnownHosts -> IO ()
+saveKnownHosts' khPath kh = writeFileLbs khPath $ encodePretty kh
 
 vcQuery :: FilePath
         -> MVar (KnownHosts, UTCTime)
@@ -234,9 +240,7 @@ vcQuery khPath khVar t (hostname, _) (Fingerprint b) c = do
     when (not found && shouldAdd) $ do
         warnf "{} ({} trust mode): Adding new fingerprint {} for host {}"
             (khPath, show t, show $ hexWithColons b, hostname)
-        saveKnownHosts khAdded khPath
-        mtime <- getModificationTime khPath
-        void $ swapMVar khVar (khAdded, mtime)
+        saveKnownHosts khPath khVar khAdded
     return $ if valid
         then ValidationCachePass
         else case t of
@@ -274,6 +278,6 @@ vcAdd khPath khVar t (hostname, _) (Fingerprint b) _
                   }
           warnf "{} ({} trust mode): Adding new fingerprint '{}' for host '{}'"
               (khPath, show t, show $ hexWithColons b, hostname)
-          saveKnownHosts khAdded khPath
+          saveKnownHosts khPath khVar khAdded
     | otherwise                = warnf "vcAdd: Called in non-CA trust mode for host '{}'"
                                  [hostname]
