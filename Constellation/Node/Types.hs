@@ -20,6 +20,7 @@ data Node = Node
     , nodeDefaultPub   :: Maybe PublicKey
     , nodeAlwaysSendTo :: [PublicKey]
     , nodeSelfPub      :: PublicKey
+    , nodeSetSecure    :: Bool
     , nodeManager      :: Manager
     }
 

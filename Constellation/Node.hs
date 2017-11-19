@@ -33,8 +33,9 @@ newNode :: Crypt
         -> PublicKey
         -> [Text]
         -> Manager
+        -> Bool
         -> IO Node
-newNode crypt storage url rcpts alwaysSendTo selfPub parties m =
+newNode crypt storage url rcpts alwaysSendTo selfPub parties m setSecure =
     return Node
         { nodePi           = PartyInfo
               { piUrl     = url
@@ -46,6 +47,7 @@ newNode crypt storage url rcpts alwaysSendTo selfPub parties m =
         , nodeDefaultPub   = listToMaybe rcpts  -- the first public key listed
         , nodeAlwaysSendTo = alwaysSendTo
         , nodeSelfPub      = selfPub
+        , nodeSetSecure    = setSecure
         , nodeManager      = m
         }
 
@@ -93,8 +95,8 @@ getRemotePartyInfo :: TVar Node -> Text -> IO (Either String PartyInfo)
 getRemotePartyInfo nvar url = trys $ do
     logf "Starting synchronization with {}" [url]
     Node{..} <- atomically $ readTVar nvar
-    res      <- simplePostLbs nodeManager (T.unpack url ++ "partyinfo")
-        (encode nodePi)
+    res      <- simplePostLbs nodeManager nodeSetSecure
+        (T.unpack url ++ "partyinfo") (encode nodePi)
     logf "Finished synchronization with {}" [url]
     evaluate $ decode (responseBody res)
 
@@ -159,7 +161,7 @@ propagatePayload' Node{..} epl rcpts =
     f (pub, rcptBox) = trys $ case HM.lookup pub (piRcpts nodePi) of
         Nothing  -> error "Unknown recipient"
         Just url -> TE.decodeUtf8 . BL.toStrict . responseBody <$>
-            simplePostLbs nodeManager (T.unpack url ++ "push")
+            simplePostLbs nodeManager nodeSetSecure (T.unpack url ++ "push")
             (encode epl { eplRcptBoxes = [rcptBox] })
 
 receivePayload :: Node -> Text -> PublicKey -> IO (Either String ByteString)

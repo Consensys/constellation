@@ -113,7 +113,7 @@ setupTestNode (strust, ctrust) d = do
         (d </> "tls-knownservers") ctrust "localhost"
     nvar    <- newTVarIO =<<
         newNode crypt storage (tformat "https://localhost:{}/" [port])
-        [pub1, pub2] [] selfPub [] m
+        [pub1, pub2] [] selfPub [] m True
     tlsSettings <- setupServerTls
         (d </> "tls-server-cert.pem") [] (d </> "tls-server-key.pem")
         (d </> "tls-knownclients") strust "localhost"

@@ -98,10 +98,11 @@ run cfg@Config{..} = do
     ast           <- mustLoadPublicKeys cfgAlwaysSendTo
     (selfPub, _)  <- newKeyPair
     logf' "Throwaway public key for self-sending: {}" [show selfPub]
-    storage       <- setupStorage cfgStorage
-    (warpFunc, m) <- setupTls cfg
+    storage                    <- setupStorage cfgStorage
+    (warpFunc, m, forceSecure) <- setupTls cfg
     nvar <- newTVarIO =<<
         newNode crypt storage cfgUrl pubs ast selfPub cfgOtherNodes m
+        forceSecure
     _    <- forkIO $ do
         let mwl = if null cfgIpWhitelist
                 then Nothing
@@ -181,12 +182,12 @@ setupStorage storage = case break (== ':') storage of
   where
     experimentalStorageCaveat s = warnf' "The {} storage engine is experimental. It may be removed or changed at any time. Please see the discussion at https://github.com/jpmorganchase/constellation/issues/37" [s :: Text]
 
-setupTls :: Config -> IO (Settings -> Application -> IO (), Manager)
+setupTls :: Config -> IO (Settings -> Application -> IO (), Manager, Bool)
 setupTls Config{..} = case cfgTls of
     -- TLS is disabled, but unauthenticated outbound TLS connections can
     -- still happen.
     "off"    -> newManager (additionalManagerSettings tlsManagerSettings)
-        >>= \m -> return (runSettings, m)
+        >>= \m -> return (runSettings, m, False)
     "strict" -> do
         hostname <- hostnameFromUrl cfgUrl
         m        <- setupClientTls cfgTlsClientCert cfgTlsClientChain
@@ -197,7 +198,7 @@ setupTls Config{..} = case cfgTls of
             cfgTlsServerKey hostname
         sanityCheckCredential cfgTlsClientCert cfgTlsClientChain
             cfgTlsClientKey hostname
-        return (runTLS settings, m)
+        return (runTLS settings, m, True)
     _        -> error "setupTls: Invalid TLS mode"
   where
     strust   = fromMaybe (error "Invalid server trust mode") $

@@ -19,29 +19,33 @@ getHeaderCommaValues hname h =
 getHeaderValues :: HeaderName -> RequestHeaders -> [ByteString]
 getHeaderValues hname h = [v | (k, v) <- h, k == hname]
 
-postRequestBs :: MonadThrow m => String -> ByteString -> m Request
-postRequestBs url b = postRequest url (RequestBodyBS b)
+postRequestBs :: MonadThrow m => Bool -> String -> ByteString -> m Request
+postRequestBs setSecure url b = postRequest setSecure url (RequestBodyBS b)
 
-postRequestLbs :: MonadThrow m => String -> BL.ByteString -> m Request
-postRequestLbs url b = postRequest url (RequestBodyLBS b)
+postRequestLbs :: MonadThrow m => Bool -> String -> BL.ByteString -> m Request
+postRequestLbs setSecure url b = postRequest setSecure url (RequestBodyLBS b)
 
-postRequest :: MonadThrow m => String -> RequestBody -> m Request
-postRequest url b = parseRequest url >>= \req -> return req
+postRequest :: MonadThrow m => Bool -> String -> RequestBody -> m Request
+postRequest setSecure url b = parseRequest url >>= \req -> return req
     { method      = "POST"
-    , secure      = True  -- TODO: This needs to be toggled
+    , secure      = setSecure || secure req
     , requestBody = b
     }
 
 simplePostBs :: (MonadThrow m, MonadIO m)
              => Manager
+             -> Bool
              -> String
              -> ByteString
              -> m (Response BL.ByteString)
-simplePostBs m url b = postRequestBs url b >>= \req -> httpLbs req m
+simplePostBs m setSecure url b = postRequestBs setSecure url b
+    >>= \req -> httpLbs req m
 
 simplePostLbs :: (MonadThrow m, MonadIO m)
               => Manager
+              -> Bool
               -> String
               -> BL.ByteString
               -> m (Response BL.ByteString)
-simplePostLbs m url b = postRequestLbs url b >>= \req -> httpLbs req m
+simplePostLbs m setSecure url b = postRequestLbs setSecure url b
+    >>= \req -> httpLbs req m
