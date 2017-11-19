@@ -98,11 +98,11 @@ run cfg@Config{..} = do
     ast           <- mustLoadPublicKeys cfgAlwaysSendTo
     (selfPub, _)  <- newKeyPair
     logf' "Throwaway public key for self-sending: {}" [show selfPub]
-    storage                    <- setupStorage cfgStorage
-    (warpFunc, m, forceSecure) <- setupTls cfg
+    storage                  <- setupStorage cfgStorage
+    (warpFunc, m, setSecure) <- setupTls cfg
     nvar <- newTVarIO =<<
         newNode crypt storage cfgUrl pubs ast selfPub cfgOtherNodes m
-        forceSecure
+        setSecure
     _    <- forkIO $ do
         let mwl = if null cfgIpWhitelist
                 then Nothing
