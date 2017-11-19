@@ -28,6 +28,7 @@ import Constellation.Node.Types
     , Crypt(Crypt, encryptPayload, decryptPayload), Storage(closeStorage)
     )
 import Constellation.Util.Network (getUnusedPort)
+import Constellation.Util.String (truncateString)
 import Constellation.Util.Text (tformat)
 
 import Constellation.MockData
@@ -153,6 +154,7 @@ firstPublicKey Node{..} = case ownPubs of
         (HM.toList $ piRcpts nodePi)
 
 kvTest :: (Show a, Eq b, Show b) => String -> [(a, b)] -> (a -> b) -> TestTree
-kvTest name tests f = testGroup name $ map gen tests
+kvTest name tests f = testGroup (trunc name) $ map gen tests
   where
-    gen (input, output) = testCase (show input) $ f input @?= output
+    gen (input, output) = testCase (trunc $ show input) $ f input @?= output
+    trunc               = truncateString 50
