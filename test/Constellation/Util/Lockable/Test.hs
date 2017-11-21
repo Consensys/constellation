@@ -27,16 +27,16 @@ tests = testGroup "Util.Lockable"
 argonOptionsKvs :: [(ArgonOptions, Text)]
 argonOptionsKvs =
     [ ( defaultArgonOptions
-      , "{\"variant\":\"i\",\"memory\":1048576,\"iterations\":10,\"parallelism\":4,\"version\":\"1.3\"}"
+      , "{\"variant\":\"id\",\"memory\":1048576,\"iterations\":10,\"parallelism\":4,\"version\":\"1.3\"}"
       )
     , ( ArgonOptions Options
         { iterations  = 1
         , memory      = (2 :: Word32) ^ (10 :: Word32)  -- 1 KB
         , parallelism = 2
-        , variant     = Argon2id
+        , variant     = Argon2d
         , version     = Version10
         }
-      , "{\"variant\":\"id\",\"memory\":1024,\"iterations\":1,\"parallelism\":2,\"version\":\"1.0\"}"
+      , "{\"variant\":\"d\",\"memory\":1024,\"iterations\":1,\"parallelism\":2,\"version\":\"1.0\"}"
       )
     ]
 
@@ -50,7 +50,7 @@ testFromJsonToArgonOptions = kvTest "fromJsonToArgonOptions"
 
 testFromJsonToArgonOptionsNoVersion :: TestTree
 testFromJsonToArgonOptionsNoVersion = testCase "testFromJsonToArgonOptionsNoVersion" $
-    decode "{\"variant\":\"i\",\"memory\":1048576,\"iterations\":10,\"parallelism\":4}"
+    decode "{\"variant\":\"id\",\"memory\":1048576,\"iterations\":10,\"parallelism\":4}"
     @?= Just defaultArgonOptions
     
 justKvsSwap :: (a, b) -> (b, Maybe a)

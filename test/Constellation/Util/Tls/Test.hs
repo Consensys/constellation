@@ -1,12 +1,11 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE StrictData #-}
-module Constellation.Util.Logging.Test where
+module Constellation.Util.Tls.Test where
 
 import ClassyPrelude
 import Test.Tasty (TestTree, testGroup)
 
-import Constellation.Util.Text (tformat)
+-- import Constellation.Util.Tls (generateSelfSignedCertificate)
 
 tests :: TestTree
-tests = testGroup "Util.Logging" []
+tests = testGroup "Util.Tls" []

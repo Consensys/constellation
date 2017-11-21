@@ -17,4 +17,3 @@ getUnusedPort = do
     port <- socketPort sock
     close sock
     return $ fromIntegral port
-

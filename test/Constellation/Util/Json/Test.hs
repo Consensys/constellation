@@ -1,12 +1,11 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE StrictData #-}
-module Constellation.Util.Logging.Test where
+module Constellation.Util.Json.Test where
 
 import ClassyPrelude
 import Test.Tasty (TestTree, testGroup)
 
-import Constellation.Util.Text (tformat)
+-- import Constellation.Util.Json ( )
 
 tests :: TestTree
-tests = testGroup "Util.Logging" []
+tests = testGroup "Util.Json" []

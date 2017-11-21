@@ -1,4 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -24,7 +23,7 @@ defaultArgonOptions = ArgonOptions Options
     { iterations  = 10
     , memory      = (2 :: Word32) ^ (20 :: Word32)  -- 1 GiB
     , parallelism = 4
-    , variant     = Argon2i
+    , variant     = Argon2id
     , version     = Version13
     }
 

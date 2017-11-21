@@ -1,6 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE StrictData #-}
 module Constellation.Configure.Main where
 
