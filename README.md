@@ -26,6 +26,11 @@ Constellation binaries for most major platforms can be downloaded [here](https:/
     - Linux: `curl -sSL https://get.haskellstack.org/ | sh`
     - MacOS: `brew install haskell-stack`
   2. First time only: run `stack setup` to install the Haskell compiler
+      
+      a. If you have manually installed Berkley make sure to include the header and library files.
+          
+         stack install --extra-include-dirs=/usr/local/BerkleyDB.N.X/include --extra-lib-dirs=/usr/local/BerkleyDB.N.X/lib
+  
   3. Run `stack install`
 
 ## Generating keys
