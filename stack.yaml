@@ -15,7 +15,7 @@
 # resolver:
 #  name: custom-snapshot
 #  location: "./custom-snapshot.yaml"
-resolver: lts-9.12
+resolver: lts-10.3
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -42,7 +42,6 @@ packages:
 # (e.g., acme-missiles-0.3)
 extra-deps:
   - BerkeleyDB-0.8.7
-  - cryptonite-0.22
   - logging-3.0.4
   - saltine-0.0.0.4
 
