@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -62,13 +63,13 @@ instance ToJSON SendResponse where
 
 data Receive = Receive
     { rreqKey :: Text
-    , rreqTo  :: PublicKey
+    , rreqTo  :: Maybe PublicKey
     } deriving (Show)
 
 instance FromJSON Receive where
     parseJSON (Object v) = Receive
-        <$> v .: "key"
-        <*> v .: "to"
+        <$> v .:  "key"
+        <*> v .:? "to"
     parseJSON _          = mzero
 
 data ReceiveResponse = ReceiveResponse
@@ -148,28 +149,43 @@ hFrom = "c11n-from"
 hTo :: HeaderName
 hTo = "c11n-to"
 
+hKey :: HeaderName
+hKey = "c11n-key"
+
 decodeSendRaw :: BL.ByteString -> RequestHeaders -> Either String Send
 decodeSendRaw b h = case getHeaderCommaValues hTo h of
     [] -> Left "decodeSendRaw: To header not found"
-    to -> case efrom of
-        Left err   -> Left err
-        Right from -> Right Send
+    to -> case onePublicKeyFromHeaderValues $ getHeaderValues hFrom h of
+        Left err    -> Left err
+        Right mfrom -> Right Send
             { sreqPayload = toStrict b
-            , sreqFrom    = from
+            , sreqFrom    = mfrom
             , sreqTo      = map mustDecodeB64PublicKey to
             }
-  where
-    efrom = case getHeaderValues hFrom h of
-        []        -> Right Nothing
-        [fromB64] -> case convertFromBase Base64 fromB64 of
-            Left err   -> Left err
-            Right from -> case mkPublicKey from of
-                Nothing  -> Left "decodeSendRaw: Invalid From public key"
-                Just pub -> Right $ Just pub
-        _         -> Left "decodeSendRaw: More than one From value given"
+
+onePublicKeyFromHeaderValues :: [ByteString] -> Either String (Maybe PublicKey)
+onePublicKeyFromHeaderValues []        = Right Nothing
+onePublicKeyFromHeaderValues [fromB64] = case convertFromBase Base64 fromB64 of
+    Left err   -> Left err
+    Right from -> case mkPublicKey from of
+        Nothing  -> Left "onePublicKeyFromHeaderValues: Invalid public key"
+        Just pub -> Right $ Just pub
+onePublicKeyFromHeaderValues _         =
+    Left "onePublicKeyFromHeaderValues: More than one value given"
 
 mustDecodeB64PublicKey :: ByteString -> PublicKey
 mustDecodeB64PublicKey = fromJust . mkPublicKey . mustB64DecodeBs
+
+decodeReceiveRaw :: RequestHeaders -> Either String Receive
+decodeReceiveRaw h = case getHeaderCommaValues hKey h of
+    []  -> Left "decodeReceiveRaw: Key header not found"
+    [k] -> case onePublicKeyFromHeaderValues $ getHeaderValues hTo h of
+        Left err  -> Left err
+        Right mto -> Right Receive
+            { rreqKey = TE.decodeUtf8 k
+            , rreqTo  = mto
+            }
+    _   -> Left "decodeReceiveRaw: More than one Key value given"
 
 whitelist :: [String] -> Whitelist
 whitelist strs = Whitelist
@@ -232,11 +248,11 @@ parseRequest :: [Text] -> BL.ByteString -> RequestHeaders -> Either String ApiRe
 -----
 -- Node client
 -----
-parseRequest ["send"]       b _ = ApiSend <$> AE.eitherDecode' b
-parseRequest ["receive"]    b _ = ApiReceive <$> AE.eitherDecode' b
-parseRequest ["sendraw"]    b h = ApiSend <$> decodeSendRaw b h
-parseRequest ["receiveraw"] b _ = ApiReceiveRaw <$> AE.eitherDecode' b
-parseRequest ["delete"]     b _ = ApiDelete <$> AE.eitherDecode' b
+parseRequest ["send"]       b _ = ApiSend       <$> AE.eitherDecode' b
+parseRequest ["receive"]    b _ = ApiReceive    <$> AE.eitherDecode' b
+parseRequest ["sendraw"]    b h = ApiSend       <$> decodeSendRaw b h
+parseRequest ["receiveraw"] _ h = ApiReceiveRaw <$> decodeReceiveRaw h
+parseRequest ["delete"]     b _ = ApiDelete     <$> AE.eitherDecode' b
 -----
 -- Node to node
 -----
@@ -299,9 +315,9 @@ send node Send{..} = do
         else return $ Left $ "sendRequest: Errors while running sendPayload: " ++ show eks
 
 receive :: Node -> Receive -> IO (Either String ReceiveResponse)
-receive node Receive{..} = do
-    epl <- receivePayload node rreqKey rreqTo
-    case epl of
+receive node Receive{..} = case rreqTo <|> nodeDefaultPub node of
+    Nothing -> return $ Left "receive: No To public key given and no default is set"
+    Just to -> receivePayload node rreqKey to >>= \case
         Left err -> return $ Left err
         Right pl -> return $ Right ReceiveResponse
             { rresPayload = pl

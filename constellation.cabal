@@ -64,7 +64,7 @@ library
                      , conduit >= 1.2.8
                      , connection >= 0.2.8
                      , containers >= 0.5.7
-                     , cryptonite >= 0.22
+                     , cryptonite >= 0.24
                      , data-default >= 0.7.1.1
                      , directory >= 1.2.6.2
                      , either >= 4.4
