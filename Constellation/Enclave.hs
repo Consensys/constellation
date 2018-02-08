@@ -59,7 +59,7 @@ getCombinedKeys Enclave{..} sender rcpts = do
                 Nothing -> error "getCombinedKeys: Matching private key not found"
                 Just pk -> (k:ks, ncc, True)
                   where
-                    k   = safeBeforeNM (unPublicKey sender) pk (unPublicKey rcpt)
+                    !k  = safeBeforeNM (unPublicKey sender) pk (unPublicKey rcpt)
                     ncc = HM.insert (sender, rcpt) k cc
             Just k  -> (k:ks, cc, chd)
     when ccChanged $ writeTVar enclaveComboCache finalCc
