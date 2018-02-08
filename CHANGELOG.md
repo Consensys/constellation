@@ -5,7 +5,7 @@ All major changes to Constellation will be recorded here.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [0.3.0] - 2018-02-08
 
 ### Added
 - `workdir` command line and configuration option to set the directory
@@ -22,7 +22,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Argon2id is now the default for password-based key locking.
 
+### Fixed
+- Sending to (and trying to encrypt for) your own public key will now
+  fail more intuitively.
+
+
 ## [0.2.0] - 2017-11-06
+
 ### Added
 - A `dir` storage engine which stores payloads as individual files in
   a folder, suitable for use with FUSE connectors. (Note that, if used
@@ -67,6 +73,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   - `/receiveRaw` is now `/receiveraw`
   - The `from` and `to` headers for the `/sendraw` and `/receiveraw`
     endpoints are now `c11n-from` and `c11n-to` respectively.
+
 
 ## [0.1.0] - 2017-06-06
 
@@ -174,3 +181,4 @@ the Changed section below and `sample.conf` for more information.
 [Unreleased]: https://github.com/jpmorganchase/constellation/compare/v0.2.0...HEAD
 [0.1.0]: https://github.com/jpmorganchase/constellation/compare/v0.0.1-alpha...v0.1.0
 [0.2.0]: https://github.com/jpmorganchase/constellation/compare/v0.1.0...v0.2.0
+[0.3.0]: https://github.com/jpmorganchase/constellation/compare/v0.2.0...v0.3.0
