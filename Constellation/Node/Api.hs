@@ -153,14 +153,14 @@ hKey :: HeaderName
 hKey = "c11n-key"
 
 decodeSendRaw :: BL.ByteString -> RequestHeaders -> Either String Send
-decodeSendRaw b h = case getHeaderCommaValues hTo h of
-    [] -> Left "decodeSendRaw: To header not found"
-    to -> case onePublicKeyFromHeaderValues $ getHeaderValues hFrom h of
+decodeSendRaw b h =
+    case onePublicKeyFromHeaderValues $ getHeaderValues hFrom h of
         Left err    -> Left err
         Right mfrom -> Right Send
             { sreqPayload = toStrict b
             , sreqFrom    = mfrom
-            , sreqTo      = map mustDecodeB64PublicKey to
+            , sreqTo      = map mustDecodeB64PublicKey $
+                            getHeaderCommaValues hTo h
             }
 
 onePublicKeyFromHeaderValues :: [ByteString] -> Either String (Maybe PublicKey)
