@@ -119,6 +119,7 @@ data ApiType = Public
              | Private
 
 data ApiRequest = ApiSend Send
+                | ApiSendRaw Send
                 | ApiReceive Receive
                 | ApiReceiveRaw Receive
                 | ApiDelete Delete
@@ -129,6 +130,7 @@ data ApiRequest = ApiSend Send
                 deriving (Show)
 
 data ApiResponse = ApiSendR SendResponse
+                 | ApiSendRawR SendResponse
                  | ApiReceiveR ReceiveResponse
                  | ApiReceiveRawR ReceiveResponse
                  | ApiDeleteR DeleteResponse
@@ -250,7 +252,7 @@ parseRequest :: [Text] -> BL.ByteString -> RequestHeaders -> Either String ApiRe
 -----
 parseRequest ["send"]       b _ = ApiSend       <$> AE.eitherDecode' b
 parseRequest ["receive"]    b _ = ApiReceive    <$> AE.eitherDecode' b
-parseRequest ["sendraw"]    b h = ApiSend       <$> decodeSendRaw b h
+parseRequest ["sendraw"]    b h = ApiSendRaw    <$> decodeSendRaw b h
 parseRequest ["receiveraw"] _ h = ApiReceiveRaw <$> decodeReceiveRaw h
 parseRequest ["delete"]     b _ = ApiDelete     <$> AE.eitherDecode' b
 -----
@@ -271,6 +273,7 @@ parseRequest _              _ _ = Left "Not found"
 
 authorizedRequest :: ApiType -> ApiRequest -> Bool
 authorizedRequest Private (ApiSend _)       = True
+authorizedRequest Private (ApiSendRaw _)    = True
 authorizedRequest Private (ApiReceive _)    = True
 authorizedRequest Private (ApiReceiveRaw _) = True
 authorizedRequest Private (ApiDelete _)     = True
@@ -282,6 +285,7 @@ authorizedRequest _       _                 = False
 
 performRequest :: TVar Node -> ApiRequest -> IO (Either String ApiResponse)
 performRequest nvar (ApiSend sreq)       = readTVarIO nvar >>= \node -> fmap ApiSendR       <$> send node sreq
+performRequest nvar (ApiSendRaw sreq)    = readTVarIO nvar >>= \node -> fmap ApiSendRawR    <$> send node sreq
 performRequest nvar (ApiReceive rreq)    = readTVarIO nvar >>= \node -> fmap ApiReceiveR    <$> receive node rreq
 performRequest nvar (ApiReceiveRaw rreq) = readTVarIO nvar >>= \node -> fmap ApiReceiveRawR <$> receive node rreq
 performRequest nvar (ApiDelete dreq)     = readTVarIO nvar >>= \node -> fmap ApiDeleteR     <$> delete node dreq
@@ -292,6 +296,7 @@ performRequest _    ApiUpcheck           = return $ Right ApiUpcheckR
 
 response :: ApiResponse -> BL.ByteString
 response (ApiSendR sres)                        = AE.encode sres
+response (ApiSendRawR SendResponse{..})         = BL.fromStrict $ TE.encodeUtf8 sresKey
 response (ApiReceiveR rres)                     = AE.encode rres
 response (ApiReceiveRawR ReceiveResponse{..})   = BL.fromStrict rresPayload
 response (ApiDeleteR DeleteResponse)            = ""
