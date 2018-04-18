@@ -1,9 +1,9 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE StrictData #-}
 module Constellation.Util.Exception.Test where
 
-import ClassyPrelude hiding (assert)
+  hiding (assert)
 import Test.QuickCheck.Monadic (PropertyM, monadicIO, run, assert)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.QuickCheck (testProperty)

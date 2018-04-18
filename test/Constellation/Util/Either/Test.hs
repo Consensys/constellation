@@ -1,9 +1,9 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE StrictData #-}
 module Constellation.Util.Either.Test where
 
-import ClassyPrelude
+
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.QuickCheck (testProperty)
 

@@ -1,10 +1,10 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE StrictData #-}
 module Constellation.Node.Trust.Test where
 
-import ClassyPrelude hiding (encodeUtf8)
+  hiding (encodeUtf8)
 import Data.Default (def)
 import Data.X509 (CertificateChain(..), getCertificate)
 import Data.X509.Validation (ValidationCacheResult(..))

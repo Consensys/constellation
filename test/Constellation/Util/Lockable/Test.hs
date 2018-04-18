@@ -1,9 +1,9 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE StrictData #-}
 module Constellation.Util.Lockable.Test where
 
-import ClassyPrelude
+
 import Crypto.KDF.Argon2 (Options(..), Variant(..), Version(..))
 import Data.Aeson (encode, decode)
 import Data.Maybe (fromJust)
@@ -43,7 +43,7 @@ argonOptionsKvs =
 testToJsonFromArgonOptions :: TestTree
 testToJsonFromArgonOptions = kvTest "toJsonFromArgonOptions"
     argonOptionsKvs $ TL.toStrict . TLE.decodeUtf8 . encode
-  
+
 testFromJsonToArgonOptions :: TestTree
 testFromJsonToArgonOptions = kvTest "fromJsonToArgonOptions"
     (map justKvsSwap argonOptionsKvs) $ decode . TLE.encodeUtf8 . TL.fromStrict
@@ -52,7 +52,7 @@ testFromJsonToArgonOptionsNoVersion :: TestTree
 testFromJsonToArgonOptionsNoVersion = testCase "testFromJsonToArgonOptionsNoVersion" $
     decode "{\"variant\":\"id\",\"memory\":1048576,\"iterations\":10,\"parallelism\":4}"
     @?= Just defaultArgonOptions
-    
+
 justKvsSwap :: (a, b) -> (b, Maybe a)
 justKvsSwap (a, b) = (b, Just a)
 

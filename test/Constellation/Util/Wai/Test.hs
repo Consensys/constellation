@@ -1,4 +1,4 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+
 {-# LANGUAGE StrictData #-}
 module Constellation.Util.Wai.Test where
 

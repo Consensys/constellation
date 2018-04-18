@@ -1,9 +1,9 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE StrictData #-}
 module Constellation.Util.Http.Test where
 
-import ClassyPrelude
+
 import Network.HTTP.Types (Header, RequestHeaders)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit ((@?=), testCase)

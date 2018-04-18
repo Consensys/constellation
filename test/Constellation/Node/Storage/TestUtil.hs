@@ -1,8 +1,8 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+
 {-# LANGUAGE StrictData #-}
 module Constellation.Node.Storage.TestUtil where
 
-import ClassyPrelude
+
 import Test.Tasty.HUnit ((@?), (@?=), Assertion)
 import qualified Data.ByteString.Char8 as BC
 

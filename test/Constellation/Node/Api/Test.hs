@@ -1,9 +1,8 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE StrictData #-}
 module Constellation.Node.Api.Test where
 
-import ClassyPrelude hiding (encodeUtf8)
 import Data.Maybe (fromJust)
 import Data.IP (toHostAddress, toHostAddress6)
 import Data.Text.Encoding (encodeUtf8)

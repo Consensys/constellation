@@ -1,10 +1,10 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE StrictData #-}
 module Constellation.TestUtil where
 
-import ClassyPrelude
+
 import Network.Wai.Handler.Warp (setPort, defaultSettings)
 import Network.Wai.Handler.WarpTLS (TLSSettings, runTLS)
 import System.IO.Temp (withSystemTempDirectory)

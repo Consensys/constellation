@@ -1,8 +1,8 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+
 {-# LANGUAGE OverloadedStrings #-}
 module Constellation.Util.String.Test where
 
-import ClassyPrelude
+
 import Data.Char (isSpace)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.QuickCheck (testProperty)

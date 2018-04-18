@@ -1,4 +1,4 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE StrictData #-}
 module Main
@@ -6,7 +6,7 @@ module Main
       main
     ) where
 
-import ClassyPrelude
+
 import Control.Logging (LogLevel(LevelError), setLogLevel, withStderrLogging)
 import GHC.Conc (getNumProcessors)
 import Test.Tasty (TestTree, testGroup, defaultMain)

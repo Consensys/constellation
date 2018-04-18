@@ -1,4 +1,4 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+
 {-# LANGUAGE StrictData #-}
 module Constellation.Node.Test where
 

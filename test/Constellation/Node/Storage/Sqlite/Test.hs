@@ -1,8 +1,8 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+
 {-# LANGUAGE StrictData #-}
 module Constellation.Node.Storage.Sqlite.Test where
 
-import ClassyPrelude
+
 import System.IO.Temp (withSystemTempDirectory)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (testCaseSteps)

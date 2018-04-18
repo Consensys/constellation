@@ -1,8 +1,8 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+
 {-# LANGUAGE StrictData #-}
 module Constellation.Node.Storage.Directory.Test where
 
-import ClassyPrelude
+
 import System.IO.Temp (withSystemTempDirectory)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (testCaseSteps)
@@ -20,4 +20,4 @@ testDirectory = testCaseSteps "storage" $ \step ->
     withSystemTempDirectory "constellation-test-XXX" $ \tempDir -> do
         step "Setting up Directory instance"
         storage <- directoryStorage tempDir
-        testStorage storage "testDirectory" step        
+        testStorage storage "testDirectory" step

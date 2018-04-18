@@ -1,4 +1,4 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+
 {-# LANGUAGE StrictData #-}
 module Constellation.Enclave.Key.Test where
 

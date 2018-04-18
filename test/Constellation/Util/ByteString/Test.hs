@@ -1,9 +1,9 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE StrictData #-}
 module Constellation.Util.ByteString.Test where
 
-import ClassyPrelude
+
 import Test.Tasty (TestTree, testGroup)
 import qualified Data.Text.Encoding as TE
 

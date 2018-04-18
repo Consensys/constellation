@@ -1,0 +1,4 @@
+packages: constellation.cabal
+
+package fail
+  documentation: True

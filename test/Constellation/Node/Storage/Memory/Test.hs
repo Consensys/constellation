@@ -1,8 +1,8 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+
 {-# LANGUAGE StrictData #-}
 module Constellation.Node.Storage.Memory.Test where
 
-import ClassyPrelude
+
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (testCaseSteps)
 
@@ -18,4 +18,4 @@ testMemory :: TestTree
 testMemory = testCaseSteps "storage" $ \step -> do
     step "Setting up Memory instance"
     storage <- memoryStorage
-    testStorage storage "testMemory" step        
+    testStorage storage "testMemory" step
