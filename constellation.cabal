@@ -1,5 +1,5 @@
 name:                constellation
-version:             0.3.0
+version:             0.3.5
 synopsis:            Constellation
 description:         Constellation
 homepage:            https://github.com/jpmorganchase/constellation
@@ -100,11 +100,12 @@ library
                      , unix >= 2.7.2.1
                      , unordered-containers >= 0.2.7.1
                      , wai >= 3.2.1.1
-                     , warp >= 3.2.8
+                     , warp >= 3.2.23
                      , warp-tls >= 3.2.4
                      , x509 >= 1.7.2
                      , x509-system >= 1.6.6
                      , x509-validation >= 1.6.9
+                     , bsb-http-chunked >= 0.0.0.2
   default-language:    Haskell2010
 
 test-suite constellation-test

@@ -44,6 +44,8 @@ extra-deps:
   - BerkeleyDB-0.8.7
   - logging-3.0.5
   - saltine-0.0.0.4
+  - bsb-http-chunked-0.0.0.2
+  - warp-3.2.23
 
 # Override default flag values for local packages and extra-deps
 flags: {}
