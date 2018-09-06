@@ -1,7 +1,7 @@
 # DISTRO_VERSION can be something like "trusty", "xenial", or "zesty".
 # Supply this using e.g.: --build-arg DISTRO_VERSION=trusty
 
-ARG DISTRO_VERSION
+ENV DISTRO_VERSION zesty
 FROM ubuntu:${DISTRO_VERSION}
 
 RUN apt-get update
