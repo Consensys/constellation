@@ -1,7 +1,7 @@
 # DISTRO_VERSION can be something like "trusty", "xenial", or "zesty".
 # Supply this using e.g.: --build-arg DISTRO_VERSION=trusty
 
-FROM ubuntu:xenial
+FROM ubuntu:trusty
 
 RUN apt-get update
 
@@ -43,7 +43,7 @@ ARG DISTRO_VERSION
 RUN fpm -t deb --deb-changelog CHANGELOG.md -d libgmp-dev -d libdb-dev -d libleveldb-dev -d libsodium-dev -d zlib1g-dev -d libtinfo-dev \
         -s dir \
         -n constellation \
-        -p ubuntu-xenial.deb \
+        -p ubuntu-trusty.deb \
         -v "$(cat constellation.cabal | grep '^version:' | awk '{print $2}')" \
         --description "$(cat constellation.cabal | grep '^description:' | sed 's/description: *//')" \
         --url "https://github.com/jpmorganchase/constellation" \
