@@ -39,15 +39,16 @@ RUN stack install --local-bin-path /usr/local/bin --test
 
 # END constellation build.
 
-ARG DISTRO_VERSION
-RUN fpm -t deb --deb-changelog CHANGELOG.md -d libgmp-dev -d libdb-dev -d libleveldb-dev -d libsodium-dev -d zlib1g-dev -d libtinfo-dev \
-        -s dir \
-        -n constellation \
-        -p ubuntu-trusty.deb \
-        -v "$(cat constellation.cabal | grep '^version:' | awk '{print $2}')" \
-        --description "$(cat constellation.cabal | grep '^description:' | sed 's/description: *//')" \
-        --url "https://github.com/jpmorganchase/constellation" \
-        --maintainer "$(cat constellation.cabal | grep 'author:' | sed 's/author: *//')" \
-        --license "$(cat constellation.cabal | grep license: | sed 's/license: *//')" \
-        --vendor "JPMorgan Chase & Co." \
-        $(cat constellation.cabal | grep '^executable ' | awk '{print $2}' | sed 's#.*#/usr/local/bin/&=/usr/local/bin/&#')
+# RUN fpm -t deb --deb-changelog CHANGELOG.md -d libgmp-dev -d libdb-dev -d libleveldb-dev -d libsodium-dev -d zlib1g-dev -d libtinfo-dev \
+#        -s dir \
+#        -n constellation \
+#        -p ubuntu-trusty.deb \
+#        -v "$(cat constellation.cabal | grep '^version:' | awk '{print $2}')" \
+#        --description "$(cat constellation.cabal | grep '^description:' | sed 's/description: *//')" \
+#        --url "https://github.com/jpmorganchase/constellation" \
+#        --maintainer "$(cat constellation.cabal | grep 'author:' | sed 's/author: *//')" \
+#        --license "$(cat constellation.cabal | grep license: | sed 's/license: *//')" \
+#        --vendor "JPMorgan Chase & Co." \
+#        $(cat constellation.cabal | grep '^executable ' | awk '{print $2}' | sed 's#.*#/usr/local/bin/&=/usr/local/bin/&#')
+
+ENTRYPOINT ["constellation-node"]
