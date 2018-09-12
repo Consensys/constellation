@@ -32,9 +32,8 @@ COPY Constellation/ $SRC/Constellation/
 RUN stack install --local-bin-path /usr/local/bin --test
 
 # Pull binary into a second stage deploy alpine container
-FROM alpine:latest
+FROM ubuntu:trusty
 
 COPY --from=builder /usr/local/bin/constellation-node /usr/local/bin/
 
-EXPOSE 9000
 ENTRYPOINT ["constellation-node"]
