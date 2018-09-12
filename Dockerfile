@@ -1,16 +1,9 @@
-FROM ubuntu:trusty as builder
+FROM ubuntu:xenial as builder
 
 RUN apt-get update
 
 RUN apt-get install -y curl && \
     curl -sSL https://get.haskellstack.org/ | sh
-
-# We need a PPA for libsodium on trusty:
-RUN bash -c 'if [ "$(lsb_release -sc)" == "trusty" ]; then \
-               apt-get install -y software-properties-common && \
-               add-apt-repository ppa:chris-lea/libsodium && \
-               apt-get update; \
-             fi'
 
 RUN apt-get install -y libgmp-dev libdb-dev libleveldb-dev libsodium-dev zlib1g-dev libtinfo-dev && \
     apt-get install -y ruby ruby-dev build-essential && \
@@ -32,9 +25,12 @@ COPY Constellation/ $SRC/Constellation/
 RUN stack install --local-bin-path /usr/local/bin --test
 
 # Pull binary into a second stage and deploy to container
-FROM ubuntu:trusty
+FROM ubuntu:xenial
+
+RUN mkdir -p /constellation
+RUN apt-get update
+RUN apt-get install -y libgmp-dev libdb-dev libleveldb-dev libsodium-dev zlib1g-dev libtinfo-dev
 
 COPY --from=builder /usr/local/bin/constellation-node /usr/local/bin/
-RUN mkdir -p /constellation
 
 ENTRYPOINT ["constellation-node"]
