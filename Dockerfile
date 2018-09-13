@@ -29,7 +29,7 @@ FROM ubuntu:xenial
 
 RUN mkdir -p /constellation
 RUN apt-get update
-RUN apt-get install -y libgmp-dev libdb-dev libleveldb-dev libsodium-dev zlib1g-dev libtinfo-dev
+RUN apt-get install -y libgmp-dev libdb-dev libleveldb-dev libsodium-dev zlib1g-dev libtinfo-dev build-essential
 
 COPY --from=builder /usr/local/bin/constellation-node /usr/local/bin/
 
