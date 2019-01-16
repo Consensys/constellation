@@ -17,6 +17,7 @@ import Data.X509
     , DnElement(..)
     , getCertificate
     )
+import Data.X509.CertificateStore (CertificateStore)
 import Data.X509.Validation
     ( Fingerprint(..), ValidationCacheQueryCallback, ValidationCacheAddCallback
     , ValidationCacheResult(..)
@@ -129,26 +130,30 @@ tlsSettings :: FilePath
             -> TrustMode
             -> IO TLSSettings
 tlsSettings certPath chainPaths keyPath khPath t = do
+    scs <- if t == Ca || t == CaOrTofu
+        then getSystemCertificateStore
+        else return mempty
     vc <- validationCache khPath t
     return $ (tlsSettingsChain certPath chainPaths keyPath)
         { tlsAllowedVersions = versions
         , tlsCiphers         = ciphers
         , tlsWantClientCert  = True
         , tlsServerHooks     = def
-            { onClientCertificate = clientCertificateCheck vc
+            { onClientCertificate = clientCertificateCheck vc scs
             }
         -- , tlsSessionManagerConfig = Just defaultConfig  -- TODO
         }
 
 clientCertificateCheck :: ValidationCache
+                       -> CertificateStore
                        -> CertificateChain
                        -> IO CertificateUsage
-clientCertificateCheck _  (CertificateChain [])          = return $
+clientCertificateCheck _ _  (CertificateChain [])          = return $
     CertificateUsageReject $ CertificateRejectOther "No chain"
-clientCertificateCheck vc chain@(CertificateChain (c:_)) =
+clientCertificateCheck vc scs chain@(CertificateChain (c:_)) =
     case certHostname $ getCertificate c of
         Just hostname -> do
-            faileds <- validate HashSHA512 defaultHooks defaultChecks mempty vc
+            faileds <- validate HashSHA512 defaultHooks defaultChecks scs vc
                 (hostname, "") chain
             return $ if null faileds
                 then CertificateUsageAccept
