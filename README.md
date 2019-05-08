@@ -17,13 +17,13 @@ node:
 
   - Exposes a private API which:
 
-      - Allows you to send a bytestring to one or more  public keys,
+      - Allows you to send a bytestring to one or more public keys,
         returning a content-addressable identifier. This bytestring is
         encrypted transparently and efficiently (at symmetric
         encryption speeds) before being transmitted over the wire to
         the correct recipient nodes (and only those nodes.) The
         identifier is a hash digest of the encrypted payload that
-        every receipient node receives. Each recipient node also
+        every recipient node receives. Each recipient node also
         receives a small blob encrypted for their public key which
         contains the Master Key for the encrypted payload.
 
