@@ -192,9 +192,9 @@ and they will make a call to the `receive` method of their Private
 API:
 
   1. Make a call to the Private API socket `receive` method:
-     `{"key": "qrqwrqwr"}`
+     `{"key": "owqkrokwr"}`
 
-  2. The local node will look in its storage for the key `qrqwrqwr`,
+  2. The local node will look in its storage for the key `owqkrokwr`,
      and abort if it isn't found.
 
   3. When found, the node will use the information about the sender as
