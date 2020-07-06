@@ -2,11 +2,11 @@ FROM ubuntu:xenial as builder
 
 RUN apt-get update
 
-RUN apt-get install -y curl && \
+RUN apt-get --no-install-recommends install -y apt-utils ca-certificates curl && \
     curl -sSL https://get.haskellstack.org/ | sh
 
-RUN apt-get install -y libgmp-dev libdb-dev libleveldb-dev libsodium-dev zlib1g-dev libtinfo-dev && \
-    apt-get install -y ruby ruby-dev build-essential && \
+RUN apt-get --no-install-recommends install -y libgmp-dev libdb-dev libleveldb-dev libsodium-dev zlib1g-dev libtinfo-dev && \
+    apt-get --no-install-recommends install -y ruby ruby-dev build-essential && \
     gem install --no-ri --no-rdoc fpm
 
 ENV SRC /usr/local/src/constellation
@@ -29,7 +29,7 @@ FROM ubuntu:xenial
 
 RUN mkdir -p /constellation
 RUN apt-get update
-RUN apt-get install -y libgmp-dev libdb-dev libleveldb-dev libsodium-dev zlib1g-dev libtinfo-dev build-essential curl
+RUN apt-get --no-install-recommends install -y apt-utils ca-certificates libgmp-dev libdb-dev libleveldb-dev libsodium-dev zlib1g-dev libtinfo-dev build-essential curl
 
 COPY --from=builder /usr/local/bin/constellation-node /usr/local/bin/
 
